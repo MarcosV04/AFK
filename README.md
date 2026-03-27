@@ -1,3 +1,6 @@
+<p align="center">
+<img width="1000" alt="afk_img" src="https://github.com/user-attachments/assets/1fd5d1be-cbad-4606-bdb3-9af2782eaa1c" />
+
 # 🎭 AFK - Away From the Keyboard
 
 ## 📌 Sobre o Projeto
