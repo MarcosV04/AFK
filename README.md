@@ -50,4 +50,4 @@ Nesta primeira etapa, o foco do projeto é:
 ---
 
 ## 📌 Status
-Projeto em fase inicial: (Split 1)
+Projeto em fase inicial: (Sprint 1)
