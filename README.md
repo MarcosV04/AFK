@@ -38,7 +38,7 @@ O ambiente será um palco, com desafios progressivos como obstáculos e aumento 
 
 ---
 
-## 📅 Sprit 1
+## 📅 Sprint 1
 Nesta primeira etapa, o foco do projeto é:
 
 - Estruturação do repositório no GitHub
