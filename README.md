@@ -28,6 +28,30 @@ Criar uma aplicação que integre:
 
 ---
 
+## ⚙️ Funcionalidades Implementadas
+
+### 👁️ Visão Computacional
+- Captura de vídeo em tempo real
+- Detecção das mãos simultaneamente
+- Rastreamento dos 21 pontos da mão (landmarks)
+
+---
+
+## 🎮 Proposta do Jogo
+
+O jogo será baseado em controle por gestos:
+
+- A câmera captura os movimentos da mão
+- Os gestos são interpretados como comandos
+- O personagem (marionete) reage em tempo real
+
+O ambiente será um **palco**, com desafios progressivos:
+- Obstáculos (espinhos, bombas, etc.)
+- Aumento gradual da dificuldade
+- Sistema de fases
+
+---
+
 ## 🚀 Proposta do Projeto
 O jogo será baseado em controle por gestos, onde:
 - A câmera captura a mão do usuário
@@ -37,9 +61,9 @@ O jogo será baseado em controle por gestos, onde:
 O ambiente será um palco, com desafios progressivos como obstáculos e aumento de dificuldade.
 
 ---
+Desenvolvimento das Sprints:
 
 ## 📅 Sprint 1
-Nesta primeira etapa, o foco do projeto é:
 
 - Estruturação do repositório no GitHub
 - Definição das tecnologias
@@ -47,7 +71,12 @@ Nesta primeira etapa, o foco do projeto é:
 - Planejamento das próximas etapas
 - Início dos estudos com visão computacional
 
+## 📅 Sprint 2
+
 ---
 
 ## 📌 Status
-Projeto em fase inicial: (Sprint 1)
+Projeto em fase inicial: (Sprint 1 - concluído)
+Projeto em fase inicial: (Sprint 2 - em processo)
+
+---
