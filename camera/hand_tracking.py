@@ -1,87 +1,84 @@
 import cv2
 import mediapipe as mp
+import math  # 🔥 necessário para cálculo de distância
 
-# Inicializa MediaPipe
-mp_hands = mp.solutions.hands
-mp_drawing = mp.solutions.drawing_utils
+def run_hand_tracking():
 
-hands = mp_hands.Hands(
-    max_num_hands=2,
-    min_detection_confidence=0.7,
-    min_tracking_confidence=0.7
-)
+    mp_hands = mp.solutions.hands
+    mp_drawing = mp.solutions.drawing_utils
 
-cap = cv2.VideoCapture(0)
+    hands = mp_hands.Hands(
+        max_num_hands=2,
+        min_detection_confidence=0.7,
+        min_tracking_confidence=0.7)
 
-while True:
-    success, img = cap.read()
-    if not success:
-        print("Erro ao acessar a câmera")
-        break
+    cap = cv2.VideoCapture(0)
 
-    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    results = hands.process(img_rgb)
+    while True:
+        success, img = cap.read()
+        if not success:
+            print("Erro ao acessar a câmera")
+            break
 
-    h, w, _ = img.shape
+        img = cv2.flip(img, 1)
 
-    if results.multi_hand_landmarks and results.multi_handedness:
-        for idx, hand_landmarks in enumerate(results.multi_hand_landmarks):
+        img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        results = hands.process(img_rgb)
 
-            # Detecta se é direita ou esquerda
-            label = results.multi_handedness[idx].classification[0].label
+        h, w, _ = img.shape
 
-            # Define cor
-            if label == "Right":
-                cor = (255, 0, 0)  # Vermelho
-                y_texto = 50
-            else:
-                cor = (0, 0, 255)  # Azul
-                y_texto = 100
+        if results.multi_hand_landmarks and results.multi_handedness:
+            for idx, hand_landmarks in enumerate(results.multi_hand_landmarks):
 
-            # Desenha mão
-            mp_drawing.draw_landmarks(
-                img,
-                hand_landmarks,
-                mp_hands.HAND_CONNECTIONS
-            )
+                label = results.multi_handedness[idx].classification[0].label
 
-            pontos = []
+                cor = (255, 0, 0) if label == "Right" else (0, 0, 255)
+                y_texto = 50 if label == "Right" else 100
 
-            for id, lm in enumerate(hand_landmarks.landmark):
-                x = int(lm.x * w)
-                y = int(lm.y * h)
+                mp_drawing.draw_landmarks(img, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+                    
+                pontos = []
 
-                pontos.append((x, y))
-                cv2.circle(img, (x, y), 5, cor, -1)
+                for lm in hand_landmarks.landmark:
+                    x = int(lm.x * w)
+                    y = int(lm.y * h)
+                    pontos.append((x, y))
+                    cv2.circle(img, (x, y), 5, cor, -1)
 
-            if len(pontos) == 21:
+                if len(pontos) == 21:
+                    dedos_levantados = []
 
-                dedos_levantados = []
+                    # 🔥 POLEGAR (VERSÃO ROBUSTA)
+                    polegar = pontos[4]
+                    indicador_base = pontos[5]
+                    pulso = pontos[0]
 
-                if pontos[8][1] < pontos[6][1]:
-                    dedos_levantados.append("Indicador")
+                    dist_polegar_pulso = math.hypot(polegar[0] - pulso[0], polegar[1] - pulso[1])
 
-                if pontos[12][1] < pontos[10][1]:
-                    dedos_levantados.append("Medio")
+                    dist_base = math.hypot(indicador_base[0] - pulso[0], indicador_base[1] - pulso[1])
 
-                if pontos[16][1] < pontos[14][1]:
-                    dedos_levantados.append("Anelar")
+                    if dist_polegar_pulso > dist_base * 1.2:
+                        dedos_levantados.append("Polegar")
 
-                if pontos[20][1] < pontos[18][1]:
-                    dedos_levantados.append("Mindinho")
+                    # OUTROS DEDOS
+                    if pontos[8][1] < pontos[6][1]:
+                        dedos_levantados.append("Indicador")
 
-                if pontos[4][0] < pontos[3][0]:
-                    dedos_levantados.append("Polegar")
+                    if pontos[12][1] < pontos[10][1]:
+                        dedos_levantados.append("Medio")
 
-                # Mostra na tela com cor e posição separada
-                cv2.putText(img,
-                            f"{label}: {dedos_levantados}",
-                            (10, y_texto), cv2.FONT_HERSHEY_SIMPLEX,0.7,(0, 255, 0),2)
-                            
-    cv2.imshow("AFK - Hand Tracking", img)
+                    if pontos[16][1] < pontos[14][1]:
+                        dedos_levantados.append("Anelar")
 
-    if cv2.waitKey(1) & 0xFF == 27:
-        break
+                    if pontos[20][1] < pontos[18][1]:
+                        dedos_levantados.append("Mindinho")
 
-cap.release()
-cv2.destroyAllWindows()
+                    cv2.putText(img, f"{label}: {dedos_levantados}", (10, y_texto), cv2.FONT_HERSHEY_SIMPLEX,0.7,cor,2)
+                    
+        cv2.imshow("AFK - Hand Tracking", img)
+
+        if cv2.waitKey(1) & 0xFF == 27:
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
