@@ -126,3 +126,5 @@ def run_hand_tracking():
 
     cap.release()
     cv2.destroyAllWindows()
+    
+run_hand_tracking()
