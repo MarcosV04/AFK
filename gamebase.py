@@ -31,15 +31,49 @@ def criar_bloco(espaco, x, y, largura, altura, massa=10):
     forma.elasticity = 0.3
     espaco.add(corpo, forma)
     return forma
+def criar_corda(espaco, corpo_a, corpo_b, ancora_a, ancora_b, comprimento):
+    corda = pymunk.SlideJoint(corpo_a, corpo_b, ancora_a, ancora_b, 0, comprimento)
+    espaco.add(corda)
+    return corda
+# --- NOVO: Criando os 5 Pontos de Controle (Cinemáticos) ---
+pontos_controle = []
+for i in range(5):
+    # Body_type KINEMATIC faz com que ignore gravidade e forças
+    corpo = pymunk.Body(body_type=pymunk.Body.KINEMATIC)
+    corpo.position = (300 + (i * 100), 50)
+    forma = pymunk.Circle(corpo, 15)
+    forma.color = (0, 100, 255, 255) # Azul para identificar
+    forma.sensor = True # Para não "atropelar" os blocos fisicamente se você não quiser
+    espaco.add(corpo, forma)
+    pontos_controle.append(corpo)
 
 # Criar o cenário
 criar_chao(espaco)
-bloco1 = criar_bloco(espaco, 300, 100, 100, 50)
-bloco2 = criar_bloco(espaco, 500, 100, 60, 60)
-bloco3 = criar_bloco(espaco, 400, 300, 80, 20) # Bloco extra para brincar
-bloco4 = criar_bloco(espaco, 400, 350, 80, 20)
-bloco5 = criar_bloco(espaco, 400, 400, 80, 20) # Bloco extra para brincar
-bloco6 = criar_bloco(espaco, 400, 450, 80, 20)
+bloco1 = criar_bloco(espaco, 500, 210, 75, 125)
+bloco2 = criar_bloco(espaco, 500, 90, 80, 80)
+bloco3 = criar_bloco(espaco, 450, 200, 25, 50) 
+bloco4 = criar_bloco(espaco, 450, 275, 25, 50)
+bloco5 = criar_bloco(espaco, 550, 200, 25, 50) 
+bloco6 = criar_bloco(espaco, 550, 275, 25, 50)
+bloco7 = criar_bloco(espaco, 475, 325, 25, 50) 
+bloco8 = criar_bloco(espaco, 475, 400, 25, 50)
+bloco9 = criar_bloco(espaco, 525, 325, 25, 50) 
+bloco10 = criar_bloco(espaco, 525, 400, 25, 50)
+criar_corda(espaco, bloco1.body, bloco2.body, (0, -62.5), (0, 40), 25)
+criar_corda(espaco, bloco1.body, bloco3.body, (-37.5, -50), (0, -25), (math.hypot(15, 15)))
+criar_corda(espaco, bloco3.body, bloco4.body, (0, 25), (0, -25), 25)
+criar_corda(espaco, bloco1.body, bloco5.body, (37.5, -50), (0, -25), (math.hypot(15, 15)))
+criar_corda(espaco, bloco5.body, bloco6.body, (0, 25), (0, -25), 25)
+criar_corda(espaco, bloco1.body, bloco7.body, (-25, 65), (0, -25), 25)
+criar_corda(espaco, bloco7.body, bloco8.body, (0, 25), (0, -25), 25)
+criar_corda(espaco, bloco1.body, bloco9.body, (25, 65), (0, -25), 25)
+criar_corda(espaco, bloco9.body, bloco10.body, (0, 25), (0, -25), 25)
+criar_corda(espaco, pontos_controle[2], bloco2.body, (0, 0), (0, -40), 100)
+criar_corda(espaco, pontos_controle[0], bloco4.body, (0, 0), (0, 25), 250)
+criar_corda(espaco, pontos_controle[4], bloco6.body, (0, 0), (0, 25), 250)
+criar_corda(espaco, pontos_controle[1], bloco8.body, (0, 0), (0, 25), 475)
+criar_corda(espaco, pontos_controle[3], bloco10.body, (0, 0), (0, 25), 475)
+
 # Variáveis para interação com o mouse
 mouse_body = pymunk.Body(body_type=pymunk.Body.KINEMATIC)
 mouse_joint = None
@@ -47,6 +81,11 @@ mouse_joint = None
 # Variáveis para criação da corda
 corpo_corda_a = None
 ancora_a_local = None
+
+# Variáveis de interação
+mouse_body = pymunk.Body(body_type=pymunk.Body.KINEMATIC)
+mouse_joint = None
+ponto_arrastando = None # Armazena qual ponto azul estamos movendo
 
 rodando = True
 while rodando:
@@ -60,18 +99,25 @@ while rodando:
         # --- PEGAR BLOCOS COM O MOUSE ---
         elif evento.type == pygame.MOUSEBUTTONDOWN:
             if evento.button == 1:
-                info_clique = espaco.point_query_nearest(mouse_pos, 0, pymunk.ShapeFilter())
-                if info_clique and info_clique.shape.body.body_type == pymunk.Body.DYNAMIC:
-                    mouse_body.position = mouse_pos
-                    mouse_joint = pymunk.PivotJoint(mouse_body, info_clique.shape.body, mouse_pos)
-                    mouse_joint.max_force = 50000
-                    mouse_joint.error_bias = (1.0 - 0.15) ** 60
-                    espaco.add(mouse_joint)
+                info = espaco.point_query_nearest(mouse_pos, 0, pymunk.ShapeFilter())
+                if info and info.shape:
+                    corpo_clicado = info.shape.body
+                    # Se for um dos nossos pontos azuis (Kinematic)
+                    if corpo_clicado in pontos_controle:
+                        ponto_arrastando = corpo_clicado
+                    # Se for um bloco normal (Dynamic)
+                    elif corpo_clicado.body_type == pymunk.Body.DYNAMIC:
+                        mouse_body.position = mouse_pos
+                        mouse_joint = pymunk.PivotJoint(mouse_body, corpo_clicado, mouse_pos)
+                        mouse_joint.max_force = 250000
+                        espaco.add(mouse_joint)
 
         elif evento.type == pygame.MOUSEBUTTONUP:
-            if evento.button == 1 and mouse_joint:
-                espaco.remove(mouse_joint)
-                mouse_joint = None
+            if evento.button == 1:
+                if mouse_joint:
+                    espaco.remove(mouse_joint)
+                    mouse_joint = None
+                ponto_arrastando = None
 
         # --- TECLAS DE ATALHO ---
         elif evento.type == pygame.KEYDOWN:
@@ -122,6 +168,15 @@ while rodando:
                 elif evento.key == pygame.K_c:
                     info_hover.shape.sensor = not info_hover.shape.sensor
 
+    # --- Lógica de Movimentação ---
+    # Se estiver arrastando um ponto azul, a posição dele é setada manualmente
+    if ponto_arrastando:
+        ponto_arrastando.position = mouse_pos
+    
+    # Se estiver arrastando um bloco, a junta cuida da física
+    if mouse_joint:
+        mouse_body.position = mouse_pos
+
     # Atualiza a posição do mouse
     if mouse_joint:
         mouse_body.position = mouse_pos
@@ -131,6 +186,10 @@ while rodando:
     
     # --- Desenho ---
     espaco.debug_draw(opcoes_desenho)
+
+    # Visual extra para os pontos de controle (Blue Glow)
+    for p in pontos_controle:
+        pygame.draw.circle(tela, (0, 100, 255), (int(p.position.x), int(p.position.y)), 15, 2)
 
     # Desenhar uma linha vermelha de "pré-visualização" se o jogador estiver criando uma corda
     if corpo_corda_a is not None:
