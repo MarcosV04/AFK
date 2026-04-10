@@ -7,7 +7,7 @@ import math
 pygame.init()
 LARGURA, ALTURA = 1280, 720
 tela = pygame.display.set_mode((LARGURA, ALTURA))
-pygame.display.set_caption("Simulador de Física com Cordas")
+pygame.display.set_caption("🎭 AFK - Away From the Keyboard")
 relogio = pygame.time.Clock()
 
 # --- Configuração da Física (Pymunk) ---
@@ -31,48 +31,66 @@ def criar_bloco(espaco, x, y, largura, altura, massa=10):
     forma.elasticity = 0.3
     espaco.add(corpo, forma)
     return forma
+
+def criar_esfera(espaco, x, y, raio, massa=10):
+    momento = pymunk.moment_for_circle(massa, 0, raio, (0, 0))
+    corpo = pymunk.Body(massa, momento)
+    corpo.position = x, y
+    forma = pymunk.Circle(corpo, raio)
+    forma.friction = 0.5
+    forma.elasticity = 0.3
+    espaco.add(corpo, forma)
+    return forma
+
 def criar_corda(espaco, corpo_a, corpo_b, ancora_a, ancora_b, comprimento):
     corda = pymunk.SlideJoint(corpo_a, corpo_b, ancora_a, ancora_b, 0, comprimento)
     espaco.add(corda)
     return corda
+
 # --- NOVO: Criando os 5 Pontos de Controle (Cinemáticos) ---
 pontos_controle = []
 for i in range(5):
     # Body_type KINEMATIC faz com que ignore gravidade e forças
     corpo = pymunk.Body(body_type=pymunk.Body.KINEMATIC)
-    corpo.position = (300 + (i * 100), 50)
+    corpo.position = ((LARGURA // 2) - 200 + (i * 100), 150)
     forma = pymunk.Circle(corpo, 15)
     forma.color = (0, 100, 255, 255) # Azul para identificar
     forma.sensor = True # Para não "atropelar" os blocos fisicamente se você não quiser
     espaco.add(corpo, forma)
     pontos_controle.append(corpo)
 
-# Criar o cenário
+# Criar o cenário e boneco
 criar_chao(espaco)
-bloco1 = criar_bloco(espaco, 500, 210, 75, 125)
-bloco2 = criar_bloco(espaco, 500, 90, 80, 80)
-bloco3 = criar_bloco(espaco, 450, 200, 25, 50) 
-bloco4 = criar_bloco(espaco, 450, 275, 25, 50)
-bloco5 = criar_bloco(espaco, 550, 200, 25, 50) 
-bloco6 = criar_bloco(espaco, 550, 275, 25, 50)
-bloco7 = criar_bloco(espaco, 475, 325, 25, 50) 
-bloco8 = criar_bloco(espaco, 475, 400, 25, 50)
-bloco9 = criar_bloco(espaco, 525, 325, 25, 50) 
-bloco10 = criar_bloco(espaco, 525, 400, 25, 50)
-criar_corda(espaco, bloco1.body, bloco2.body, (0, -62.5), (0, 40), 25)
-criar_corda(espaco, bloco1.body, bloco3.body, (-37.5, -50), (0, -25), (math.hypot(15, 15)))
-criar_corda(espaco, bloco3.body, bloco4.body, (0, 25), (0, -25), 25)
-criar_corda(espaco, bloco1.body, bloco5.body, (37.5, -50), (0, -25), (math.hypot(15, 15)))
-criar_corda(espaco, bloco5.body, bloco6.body, (0, 25), (0, -25), 25)
-criar_corda(espaco, bloco1.body, bloco7.body, (-25, 65), (0, -25), 25)
-criar_corda(espaco, bloco7.body, bloco8.body, (0, 25), (0, -25), 25)
-criar_corda(espaco, bloco1.body, bloco9.body, (25, 65), (0, -25), 25)
-criar_corda(espaco, bloco9.body, bloco10.body, (0, 25), (0, -25), 25)
-criar_corda(espaco, pontos_controle[2], bloco2.body, (0, 0), (0, -40), 100)
-criar_corda(espaco, pontos_controle[0], bloco4.body, (0, 0), (0, 25), 250)
-criar_corda(espaco, pontos_controle[4], bloco6.body, (0, 0), (0, 25), 250)
-criar_corda(espaco, pontos_controle[1], bloco8.body, (0, 0), (0, 25), 475)
-criar_corda(espaco, pontos_controle[3], bloco10.body, (0, 0), (0, 25), 475)
+def criar_boneco():
+    torco = criar_bloco(espaco, LARGURA // 2, 200, 75, 90)
+    cabeca = criar_bloco(espaco, LARGURA // 2 , 90, 80, 80)
+    bresq = criar_bloco(espaco, LARGURA // 2 - 50, 200, 25, 50) 
+    antesq = criar_bloco(espaco, LARGURA // 2 - 50, 275, 25, 50)
+    bradir = criar_bloco(espaco, LARGURA // 2 + 50, 200, 25, 50) 
+    antdir = criar_bloco(espaco, LARGURA // 2 + 50, 275, 25, 50)
+    peresq = criar_bloco(espaco, LARGURA // 2 - 25, 325, 25, 50) 
+    panesq = criar_bloco(espaco, LARGURA // 2 - 25, 400, 25, 50)
+    perdir = criar_bloco(espaco, LARGURA // 2 + 25, 325, 25, 50) 
+    pandir = criar_bloco(espaco, LARGURA // 2 + 25, 400, 25, 50)
+    cintura = criar_bloco(espaco, LARGURA // 2, 250, 75, 35)
+    criar_corda(espaco, torco.body, cabeca.body, (0, -45), (0, 40), 25)
+    criar_corda(espaco, torco.body, bresq.body, (-37.5, -30), (0, -25), 20)
+    criar_corda(espaco, bresq.body, antesq.body, (0, 25), (0, -25), 25)
+    criar_corda(espaco, torco.body, bradir.body, (37.5, -30), (0, -25), 20)
+    criar_corda(espaco, bradir.body, antdir.body, (0, 25), (0, -25), 25)
+    criar_corda(espaco, torco.body, cintura.body, (0, 45), (0, -17.5), 25)
+    criar_corda(espaco, cintura.body, peresq.body, (-25, 17.5), (0, -25), 25)
+    criar_corda(espaco, peresq.body, panesq.body, (0, 25), (0, -25), 25)
+    criar_corda(espaco, cintura.body, perdir.body, (25, 17.5), (0, -25), 25)
+    criar_corda(espaco, perdir.body, pandir.body, (0, 25), (0, -25), 25)
+    criar_corda(espaco, pontos_controle[2], cabeca.body, (0, 0), (0, -40), 100)
+    criar_corda(espaco, pontos_controle[0], antesq.body, (0, 0), (0, 25), 300)
+    criar_corda(espaco, pontos_controle[4], antdir.body, (0, 0), (0, 25), 300)
+    criar_corda(espaco, pontos_controle[1], peresq.body, (0, 0), (0, 25), 450)
+    criar_corda(espaco, pontos_controle[3], perdir.body, (0, 0), (0, 25), 450)
+criar_boneco()
+#criar_esfera(espaco, LARGURA // 2 + 200, 100, 50, 100) # Bola para interagir
+criar_bloco(espaco, LARGURA // 2 + 200, 100, 20, 100, 50) # Bloco para interagir
 
 # Variáveis para interação com o mouse
 mouse_body = pymunk.Body(body_type=pymunk.Body.KINEMATIC)
@@ -200,9 +218,9 @@ while rodando:
     # Instruções
     fonte = pygame.font.SysFont(None, 24)
     tela.blit(fonte.render("Clique Esquerdo: Pegar bloco", True, (0,0,0)), (10, 10))
-    tela.blit(fonte.render("Mouse + 'P': Colocar um Prego fixo", True, (0,0,0)), (10, 30))
-    tela.blit(fonte.render("Mouse + 'C': Ligar/Desligar colisão", True, (0,0,0)), (10, 50))
-    tela.blit(fonte.render("Mouse + 'R': Ponto 1 da Corda -> Mouse + 'R': Ponto 2", True, (0,0,200)), (10, 70))
+    #tela.blit(fonte.render("Mouse + 'P': Colocar um Prego fixo", True, (0,0,0)), (10, 30))
+    #tela.blit(fonte.render("Mouse + 'C': Ligar/Desligar colisão", True, (0,0,0)), (10, 50))
+    #tela.blit(fonte.render("Mouse + 'R': Ponto 1 da Corda -> Mouse + 'R': Ponto 2", True, (0,0,200)), (10, 70))
 
     pygame.display.flip()
     relogio.tick(60)
