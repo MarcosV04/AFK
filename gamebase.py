@@ -2,6 +2,7 @@ import pygame
 import pymunk
 import pymunk.pygame_util
 import math
+from camera.hand_tracking import pontos
 def jogo():
     # --- Configurações Iniciais ---
     pygame.init()
