@@ -52,18 +52,9 @@ O ambiente será um **palco**, com desafios progressivos:
 
 ---
 
-## 🚀 Proposta do Projeto
-O jogo será baseado em controle por gestos, onde:
-- A câmera captura a mão do usuário
-- Os gestos são interpretados como comandos
-- O personagem (marionete) reage em tempo real
+## Desenvolvimento das Sprints:
 
-O ambiente será um palco, com desafios progressivos como obstáculos e aumento de dificuldade.
-
----
-Desenvolvimento das Sprints:
-
-## 📅 Sprint 1
+### 📅 Sprint 1
 
 - Estruturação do repositório no GitHub
 - Definição das tecnologias
@@ -71,12 +62,24 @@ Desenvolvimento das Sprints:
 - Planejamento das próximas etapas
 - Início dos estudos com visão computacional
 
-## 📅 Sprint 2
+### 📅 Sprint 2
+
+- Implementação do sistema de hand tracking com MediaPipe
+- Detecção de duas mãos simultaneamente (direita e esquerda)
+- Mapeamento dos 21 landmarks da mão para coordenadas na tela
+- Criação de lógica de zona central (área neutra) para evitar movimentos involuntários
+- Integração inicial entre o sistema de visão computacional e o jogo em Pygame
+- Controle do personagem através de gestos em tempo real
+- Ajustes finos na detecção de movimentos para melhorar a precisão
+- Uso de Git com versionamento e criação de branch para testes
 
 ---
 
 ## 📌 Status
-Projeto em fase inicial: (Sprint 1 - concluído)
-Projeto em fase inicial: (Sprint 2 - em processo)
+- Projeto em fase inicial: (Sprint 1 - concluído ✅)
+- Projeto em fase inicial: (Sprint 2 - em processo )
+- Projeto em fase intermediária: (Sprint 3 - em processo)
+- Projeto em fase intermediária: (Sprint 4 - em processo)
+- Projeto em fase final: (Sprint 5 - em processo)
 
 ---
