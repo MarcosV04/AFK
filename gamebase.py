@@ -185,6 +185,14 @@ def jogo():
                     # TECLA 'C': Alternar Colisão
                     elif evento.key == pygame.K_c:
                         info_hover.shape.sensor = not info_hover.shape.sensor
+                
+                elif evento.key == pygame.K_k:
+                    # Mover os pontos de controle para formar uma linha horizontal seguindo o mouse
+                    pontos_controle[0].position=(mouse_pos[0]-200, mouse_pos[1])
+                    pontos_controle[1].position=(mouse_pos[0]-100, mouse_pos[1])
+                    pontos_controle[2].position=(mouse_pos[0], mouse_pos[1])
+                    pontos_controle[3].position=(mouse_pos[0]+100, mouse_pos[1])
+                    pontos_controle[4].position=(mouse_pos[0]+200, mouse_pos[1])
 
         # --- Lógica de Movimentação ---
         # Se estiver arrastando um ponto azul, a posição dele é setada manualmente
@@ -221,7 +229,11 @@ def jogo():
         #tela.blit(fonte.render("Mouse + 'P': Colocar um Prego fixo", True, (0,0,0)), (10, 30))
         #tela.blit(fonte.render("Mouse + 'C': Ligar/Desligar colisão", True, (0,0,0)), (10, 50))
         #tela.blit(fonte.render("Mouse + 'R': Ponto 1 da Corda -> Mouse + 'R': Ponto 2", True, (0,0,200)), (10, 70))
-
+        pontos_controle[0].position = ((pontos[4][0])*2+LARGURA//4, pontos[4][1]) # Esquerda
+        pontos_controle[1].position = ((pontos[8][0])*2+LARGURA//4, pontos[8][1]) # Frente
+        pontos_controle[2].position = ((pontos[12][0])*2+LARGURA//4, pontos[12][1])       # Cima
+        pontos_controle[3].position = ((pontos[16][0])*2+LARGURA//4, pontos[16][1]) # Tras
+        pontos_controle[4].position = ((pontos[20][0])*2+LARGURA//4, pontos[20][1]) # Direita
         pygame.display.flip()
         relogio.tick(60)
 

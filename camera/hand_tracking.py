@@ -41,6 +41,7 @@ def run_hand_tracking():
 
                 mp_drawing.draw_landmarks(img, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 
+                global pontos
                 pontos = []
 
                 for lm in hand_landmarks.landmark:
