@@ -1,18 +1,19 @@
-import pygame
-import pymunk
-import pymunk.pygame_util
-import math
-import time
 
-#from camera.hand_tracking import pontos
-def jogo(fila,config):
+def jogo():
+    import pygame
+    import pymunk
+    import pymunk.pygame_util
+    import math   
+    import cv2
+    import mediapipe as mp
+    import math
+    
     # --- Configurações Iniciais ---
     pygame.init()
     LARGURA, ALTURA = 1280, 720
     tela = pygame.display.set_mode((LARGURA, ALTURA))
     pygame.display.set_caption("🎭 AFK - Away From the Keyboard")
     relogio = pygame.time.Clock()
-    
 
     # --- Configuração da Física (Pymunk) ---
     espaco = pymunk.Space()
@@ -88,10 +89,10 @@ def jogo(fila,config):
         criar_corda(espaco, cintura.body, perdir.body, (25, 17.5), (0, -25), 25)
         criar_corda(espaco, perdir.body, pandir.body, (0, 25), (0, -25), 25)
         criar_corda(espaco, pontos_controle[2], cabeca.body, (0, 0), (0, -40), 100)
-        criar_corda(espaco, pontos_controle[0], antesq.body, (0, 0), (0, 25), 150)
-        criar_corda(espaco, pontos_controle[4], antdir.body, (0, 0), (0, 25), 150)
-        criar_corda(espaco, pontos_controle[1], peresq.body, (0, 0), (0, 25), 400)
-        criar_corda(espaco, pontos_controle[3], perdir.body, (0, 0), (0, 25), 400)
+        criar_corda(espaco, pontos_controle[0], antesq.body, (0, 0), (0, 25), 100)
+        criar_corda(espaco, pontos_controle[4], antdir.body, (0, 0), (0, 25), 100)
+        criar_corda(espaco, pontos_controle[1], peresq.body, (0, 0), (0, 25), 450)
+        criar_corda(espaco, pontos_controle[3], perdir.body, (0, 0), (0, 25), 450)
     criar_boneco()
     #criar_esfera(espaco, LARGURA // 2 + 200, 100, 50, 100) # Bola para interagir
     criar_bloco(espaco, LARGURA // 2 + 200, 100, 20, 100, 50) # Bloco para interagir
@@ -108,6 +109,17 @@ def jogo(fila,config):
     mouse_body = pymunk.Body(body_type=pymunk.Body.KINEMATIC)
     mouse_joint = None
     ponto_arrastando = None # Armazena qual ponto azul estamos movendo
+    
+    #Inicio do detector de mãos
+    mp_hands = mp.solutions.hands
+    mp_drawing = mp.solutions.drawing_utils
+
+    hands = mp_hands.Hands(
+        max_num_hands=2,
+        min_detection_confidence=0.7,
+        min_tracking_confidence=0.7)
+
+    cap = cv2.VideoCapture(0)
 
     rodando = True
     while rodando:
@@ -189,14 +201,6 @@ def jogo(fila,config):
                     # TECLA 'C': Alternar Colisão
                     elif evento.key == pygame.K_c:
                         info_hover.shape.sensor = not info_hover.shape.sensor
-                
-                elif evento.key == pygame.K_k:
-                    # Mover os pontos de controle para formar uma linha horizontal seguindo o mouse
-                    pontos_controle[0].position=(mouse_pos[0]-200, mouse_pos[1])
-                    pontos_controle[1].position=(mouse_pos[0]-100, mouse_pos[1])
-                    pontos_controle[2].position=(mouse_pos[0], mouse_pos[1])
-                    pontos_controle[3].position=(mouse_pos[0]+100, mouse_pos[1])
-                    pontos_controle[4].position=(mouse_pos[0]+200, mouse_pos[1])
 
         # --- Lógica de Movimentação ---
         # Se estiver arrastando um ponto azul, a posição dele é setada manualmente
@@ -233,20 +237,128 @@ def jogo(fila,config):
         #tela.blit(fonte.render("Mouse + 'P': Colocar um Prego fixo", True, (0,0,0)), (10, 30))
         #tela.blit(fonte.render("Mouse + 'C': Ligar/Desligar colisão", True, (0,0,0)), (10, 50))
         #tela.blit(fonte.render("Mouse + 'R': Ponto 1 da Corda -> Mouse + 'R': Ponto 2", True, (0,0,200)), (10, 70))
-        if not fila.empty():
-            pontos = fila.get()
-            if len(pontos) >= 20:
-                pontos_controle[0].position = ((pontos[4][0])*2, pontos[4][1]*2) # Esquerda
-                pontos_controle[1].position = ((pontos[8][0])*2, pontos[8][1]*2) # Frente
-                pontos_controle[2].position = ((pontos[12][0])*2, pontos[12][1]*2)       # Cima
-                pontos_controle[3].position = ((pontos[16][0])*2, pontos[16][1]*2) # Tras
-                pontos_controle[4].position = ((pontos[20][0])*2, pontos[20][1]*2) # Direita
+        
+        success, img = cap.read()
+        if not success:
+            print("Erro ao acessar a câmera")
+            break
+
+        img = cv2.flip(img, 1)
+
+        img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        results = hands.process(img_rgb)
+
+        h, w, _ = img.shape
+
+        # Variável global
+        movimento = "Parado"
+        acao = "Parado"
+
+        if results.multi_hand_landmarks and results.multi_handedness:
+            for idx, hand_landmarks in enumerate(results.multi_hand_landmarks):
+
+                label = results.multi_handedness[idx].classification[0].label
+
+                cor = (0, 255, 0) if label == "Right" else (0, 0, 255)
+
+                mp_drawing.draw_landmarks(img, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+
+                pontos = []
+
+                for lm in hand_landmarks.landmark:
+                    x = int(lm.x * w)
+                    y = int(lm.y * h)
+                    pontos.append((x, y))
+                    cv2.circle(img, (x, y), 5, cor, -1)
+
+                if len(pontos) != 21:
+                    continue
+
+                # Mao direita para movimentoção
+                if label == "Right":
+                    cx = pontos[0][0]
+                    cy = pontos[0][1]
+
+                    centro_x = w // 2
+                    centro_y = h // 2
+
+                    zona = 100  # Regulando ainda
+
+                    if abs(cx - centro_x) < zona and abs(cy - centro_y) < zona:
+                        movimento = "Parado"
+
+                    elif cx < centro_x - zona:
+                        movimento = "Esquerda"
+
+                    elif cx > centro_x + zona:
+                        movimento = "Direita"
+
+                    elif cy < centro_y - zona:
+                        movimento = "Frente"
+
+                    elif cy > centro_y + zona:
+                        movimento = "Tras"
+
+                # Mao esquerda para acão
+                if label == "Left":
+
+                    dedos_levantados = []
+
+                    polegar = pontos[4]
+                    pulso = pontos[0]
+                    base = pontos[5]
+
+                    dist_polegar = math.hypot(polegar[0] - pulso[0], polegar[1] - pulso[1])
+                    dist_base = math.hypot(base[0] - pulso[0], base[1] - pulso[1])
+
+                    if dist_polegar > dist_base * 1.2:
+                        dedos_levantados.append("Polegar")
+
+                    if pontos[8][1] < pontos[6][1]:
+                        dedos_levantados.append("Indicador")
+
+                    if pontos[12][1] < pontos[10][1]:
+                        dedos_levantados.append("Medio")
+
+                    if pontos[16][1] < pontos[14][1]:
+                        dedos_levantados.append("Anelar")
+
+                    if pontos[20][1] < pontos[18][1]:
+                        dedos_levantados.append("Mindinho")
+
+                    if len(dedos_levantados) == 0:
+                        acao = "Agachar"
+
+                    elif "Indicador" in dedos_levantados:
+                        acao = "Pular"
+
+                    elif "Polegar" in dedos_levantados:
+                        acao = "Especial"
+
+                    else:
+                        acao = "Parado"
+            
+            
+                        
+            pontos_controle[0].position = ((pontos[4][0])*2+LARGURA//4, pontos[4][1]) # Esquerda
+            pontos_controle[1].position = ((pontos[8][0])*2+LARGURA//4, pontos[8][1]) # Frente
+            pontos_controle[2].position = ((pontos[12][0])*2+LARGURA//4, pontos[12][1])       # Cima
+            pontos_controle[3].position = ((pontos[16][0])*2+LARGURA//4, pontos[16][1]) # Tras
+            pontos_controle[4].position = ((pontos[20][0])*2+LARGURA//4, pontos[20][1]) # Direita
+        
+        # Mostra na câmera o movimento e acão detectados
+        cv2.putText(img, f"Movimento: {movimento}", (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+        cv2.putText(img, f"Acao: {acao}", (10, 90),cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+        cv2.imshow("AFK - Hand Tracking", img)
+
+        if cv2.waitKey(1) & 0xFF == 27:
+            break
 
         pygame.display.flip()
         relogio.tick(60)
-        if not config.empty():
-            comando = config.get()
-            if comando == "Fechar":
-                rodando = False
-    config.put("Fechar")
+    
+    cap.release()
+    cv2.destroyAllWindows()
+
     pygame.quit()
+jogo()

@@ -2,8 +2,8 @@ import cv2
 import mediapipe as mp
 import math
 
-def run_hand_tracking():
-
+def run_hand_tracking(fila,config):
+    pontos = []
     mp_hands = mp.solutions.hands
     mp_drawing = mp.solutions.drawing_utils
 
@@ -41,7 +41,6 @@ def run_hand_tracking():
 
                 mp_drawing.draw_landmarks(img, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 
-                global pontos
                 pontos = []
 
                 for lm in hand_landmarks.landmark:
@@ -116,7 +115,6 @@ def run_hand_tracking():
 
                     else:
                         acao = "Parado"
-
         # Mostra na câmera o movimento e acão detectados
         cv2.putText(img, f"Movimento: {movimento}", (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
         cv2.putText(img, f"Acao: {acao}", (10, 90),cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
@@ -124,6 +122,17 @@ def run_hand_tracking():
 
         if cv2.waitKey(1) & 0xFF == 27:
             break
-
+        if fila.empty():
+            fila.put(pontos)
+        if not config.empty():
+            comando = config.get()
+            if comando == "Fechar":
+                break
     cap.release()
     cv2.destroyAllWindows()
+#from multiprocessing import Process, Queue
+#
+#fila = Queue()
+#
+#processo_camera = Process(target=run_hand_tracking, args=(fila,))
+#processo_camera.start()
