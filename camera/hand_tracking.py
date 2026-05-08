@@ -2,7 +2,7 @@ import cv2
 import mediapipe as mp
 import math
 
-def run_hand_tracking(fila,config):
+def run_hand_tracking(fila,config,gestos):
     pontos = []
     mp_hands = mp.solutions.hands
     mp_drawing = mp.solutions.drawing_utils
@@ -128,6 +128,8 @@ def run_hand_tracking(fila,config):
             comando = config.get()
             if comando == "Fechar":
                 break
+        if not gestos.empty():
+            gestos.put(acao)
     cap.release()
     cv2.destroyAllWindows()
 #from multiprocessing import Process, Queue

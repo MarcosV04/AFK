@@ -6,10 +6,11 @@ def main():
     # A fila (Queue) é o "cano" por onde os dados da câmera vão para o jogo
     fila = Queue()
     config = Queue()
+    gestos = Queue()
     # Criamos os processos independentes
     # 'args=(fila,)' passa a caixa de mensagens para as funções
-    processo_camera = Process(target=run_hand_tracking, args=(fila,config,))
-    processo_jogo = Process(target=jogo, args=(fila,config,))
+    processo_camera = Process(target=run_hand_tracking, args=(fila,config,gestos,))
+    processo_jogo = Process(target=jogo, args=(fila,config,gestos,))
 
     print("Iniciando Hand Tracking e Jogo...")
     processo_camera.start()

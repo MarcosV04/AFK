@@ -2,10 +2,9 @@ import pygame
 import pymunk
 import pymunk.pygame_util
 import math
-import time
+import os
 
-#from camera.hand_tracking import pontos
-def jogo(fila,config):
+def jogo(fila,config,gestos):
     # --- Configurações Iniciais ---
     pygame.init()
     LARGURA, ALTURA = 1280, 720
@@ -18,6 +17,12 @@ def jogo(fila,config):
     espaco = pymunk.Space()
     espaco.gravity = (0, 981) 
     opcoes_desenho = pymunk.pygame_util.DrawOptions(tela)
+
+    janela_skins_aberta = False
+    global thumbs_skins
+    thumbs_skins = {} # Dicionário para guardar as imagens da cabeça
+    skins_disponiveis = os.listdir("skins") if os.path.exists("skins") else []
+    mostrar_debug = False # Começa no modo visual (skins)
 
     # --- Funções para criar objetos ---
     def criar_chao(espaco):
@@ -92,7 +97,74 @@ def jogo(fila,config):
         criar_corda(espaco, pontos_controle[4], antdir.body, (0, 0), (0, 25), 150)
         criar_corda(espaco, pontos_controle[1], peresq.body, (0, 0), (0, 25), 400)
         criar_corda(espaco, pontos_controle[3], perdir.body, (0, 0), (0, 25), 400)
-    criar_boneco()
+        partes = {
+            "torco": torco,
+            "cabeca": cabeca,
+            "antesq": antesq,
+            "antdir": antdir,
+            "panesq": panesq,
+            "pandir": pandir,
+            "bresq": bresq,
+            "bradir": bradir,
+            "cintura": cintura,
+            "peresq": peresq,
+            "perdir": perdir
+        }
+
+        return partes
+    # --- Dicionário para armazenar as Sprites ---
+    global sprites_boneco
+    sprites_boneco = {} # { "cabeca": Surface, "torco": Surface, ... }
+
+    def carregar_skin_pasta(nome_pasta):
+        global sprites_boneco
+        caminho = f"skins/{nome_pasta}"
+        partes = ["cabeca", "torco", "bresq", "antesq", "bradir", "antdir", "peresq", "panesq", "perdir", "pandir"]
+        tamanhos = {
+        "cabeca": (80, 80),
+        "torco": (75, 90),
+        "bresq": (25, 50),
+        "antesq": (25, 50),
+        "bradir": (25, 50),
+        "antdir": (25, 50),
+        "peresq": (25, 50),
+        "panesq": (25, 50),
+        "perdir": (25, 50),
+        "pandir": (25, 50),
+        "cintura": (75, 35)
+        }   
+        for parte in partes:
+            arq = f"{caminho}/{parte}.png"
+            if os.path.exists(arq):
+                img = pygame.image.load(arq).convert_alpha()
+                # Precisamos saber o tamanho do bloco para redimensionar a imagem
+                # Ex: torco tem 75x90 no seu código
+                sprites_boneco[parte] = img
+        for parte, dimensoes in tamanhos.items():
+                arq = f"{caminho}/{parte}.png"
+                if os.path.exists(arq):
+                    # 1. Carrega a imagem original
+                    img_original = pygame.image.load(arq).convert_alpha()
+                    # 2. REDIMENSIONA para o tamanho do bloco físico
+                    img_redimensionada = pygame.transform.scale(img_original, dimensoes)
+                    # 3. Guarda a imagem pronta no dicionário
+                    sprites_boneco[parte] = img_redimensionada
+    #criar_boneco()
+    meu_boneco = criar_boneco()
+
+
+    def carregar_thumbnails():
+        global thumbs_skins
+        for pasta in skins_disponiveis:
+            caminho_thumb = f"skins/{pasta}/cabeca.png"
+            if os.path.exists(caminho_thumb):
+                img = pygame.image.load(caminho_thumb).convert_alpha()
+                # Redimensiona para um tamanho de ícone (ex: 60x60)
+                thumbs_skins[pasta] = pygame.transform.scale(img, (60, 60))
+
+    carregar_thumbnails()
+
+
     #criar_esfera(espaco, LARGURA // 2 + 200, 100, 50, 100) # Bola para interagir
     criar_bloco(espaco, LARGURA // 2 + 200, 100, 20, 100, 50) # Bloco para interagir
 
@@ -109,11 +181,32 @@ def jogo(fila,config):
     mouse_joint = None
     ponto_arrastando = None # Armazena qual ponto azul estamos movendo
 
+    # --- Estados do Menu ---
+    menu_aberto = False
+    skin_atual = "padrao"
+    skins_disponiveis = os.listdir("skins") if os.path.exists("skins") else []
+    indices_skin = 0
+
+    # --- Variáveis da Garra ---
+    conexao_garra = None
+    sinal_ativo = False
     rodando = True
     while rodando:
         tela.fill((240, 240, 240)) # Fundo cinza claro
         mouse_pos = pygame.mouse.get_pos()
+        pos_interacao = mouse_pos # Ponto usado para clicar no menu (dedo indicador ou mouse)
+        if gestos is not None and not gestos.empty():
+            acao=gestos.get()
+        
+        rect_menu = pygame.Rect(LARGURA//2 - 150, ALTURA//2 - 150, 300, 400)
+        rect_btn_skin = pygame.Rect(LARGURA//2 - 100, ALTURA//2 - 50, 200, 50)
+        rect_btn_sair = pygame.Rect(LARGURA//2 - 100, ALTURA//2 + 50, 200, 50)
+        rect_btn_fechar_menu = pygame.Rect(LARGURA//2 - 100, ALTURA//2 + 150, 200, 50)
+        braco_dir = meu_boneco["antdir"]
+        pos_mao_boneco = braco_dir.body.local_to_world((0, 25))
 
+        rect_abrir_menu = pygame.Rect(LARGURA - 150, 10, 140, 40)
+        
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
                 rodando = False
@@ -189,15 +282,27 @@ def jogo(fila,config):
                     # TECLA 'C': Alternar Colisão
                     elif evento.key == pygame.K_c:
                         info_hover.shape.sensor = not info_hover.shape.sensor
-                
-                elif evento.key == pygame.K_k:
+
+                if evento.key == pygame.K_k:
                     # Mover os pontos de controle para formar uma linha horizontal seguindo o mouse
                     pontos_controle[0].position=(mouse_pos[0]-200, mouse_pos[1])
                     pontos_controle[1].position=(mouse_pos[0]-100, mouse_pos[1])
                     pontos_controle[2].position=(mouse_pos[0], mouse_pos[1])
                     pontos_controle[3].position=(mouse_pos[0]+100, mouse_pos[1])
                     pontos_controle[4].position=(mouse_pos[0]+200, mouse_pos[1])
-
+                try:
+                    if evento.key == pygame.K_m or acao == "Agachar":
+                        sinal_ativo = True # Substitua pela sua lógica de sinal vindo da fila
+                except:
+                    pass
+                try:
+                    if evento.key == pygame.K_n or acao != "Agachar":
+                        sinal_ativo = False # Substitua pela sua lógica de sinal vindo da fila
+                except:
+                    pass
+                
+                if evento.key == pygame.K_h: # Tecla 'H' para 'Hitbox'
+                    mostrar_debug = not mostrar_debug
         # --- Lógica de Movimentação ---
         # Se estiver arrastando um ponto azul, a posição dele é setada manualmente
         if ponto_arrastando:
@@ -215,7 +320,46 @@ def jogo(fila,config):
         espaco.step(1 / 60.0)
 
         # --- Desenho ---
-        espaco.debug_draw(opcoes_desenho)
+        pygame.draw.line(tela, (50, 50, 50), (0, ALTURA - 50), (LARGURA, ALTURA - 50), 5)
+
+        if sprites_boneco:
+            for nome, img in sprites_boneco.items():
+                forma = meu_boneco[nome]
+                corpo = forma.body
+                img_rot = pygame.transform.rotate(img, -math.degrees(corpo.angle))
+                rect = img_rot.get_rect(center=corpo.position)
+                tela.blit(img_rot, rect)
+                # 1. DESENHO DAS CORDAS (Manual)
+                # Percorre todas as conexões físicas (SlideJoints, PivotJoints, etc.)
+                for conexao in espaco.constraints:
+                    # Ignora a conexão da "garra" se não quiser que ela apareça como linha
+                    if conexao == conexao_garra:
+                        continue
+
+                    # Pega as posições reais dos pontos A e B da corda no mundo
+                    pos_a = conexao.a.local_to_world(conexao.anchor_a)
+                    pos_b = conexao.b.local_to_world(conexao.anchor_b)
+
+                    # Desenha a linha da corda (marrom ou preto)
+                    pygame.draw.line(tela, (70, 40, 20), pos_a, pos_b, 2)
+
+                # 2. LOGICA DE VISIBILIDADE (O que o usuário vê)
+                if mostrar_debug:
+                    # Volta ao "Normal" (mostra as caixas, círculos e eixos)
+                    espaco.debug_draw(opcoes_desenho)
+                else:
+                    # Modo Imersivo (apenas Skins e o Chão)
+                    pygame.draw.line(tela, (50, 50, 50), (0, ALTURA - 50), (LARGURA, ALTURA - 50), 5)
+
+                    if sprites_boneco:
+                        for nome, img in sprites_boneco.items():
+                            forma = meu_boneco[nome]
+                            corpo = forma.body
+                            img_rot = pygame.transform.rotate(img, -math.degrees(corpo.angle))
+                            rect = img_rot.get_rect(center=corpo.position)
+                            tela.blit(img_rot, rect)
+        else:
+            espaco.debug_draw(opcoes_desenho)
 
         # Visual extra para os pontos de controle (Blue Glow)
         for p in pontos_controle:
@@ -233,20 +377,115 @@ def jogo(fila,config):
         #tela.blit(fonte.render("Mouse + 'P': Colocar um Prego fixo", True, (0,0,0)), (10, 30))
         #tela.blit(fonte.render("Mouse + 'C': Ligar/Desligar colisão", True, (0,0,0)), (10, 50))
         #tela.blit(fonte.render("Mouse + 'R': Ponto 1 da Corda -> Mouse + 'R': Ponto 2", True, (0,0,200)), (10, 70))
-        if not fila.empty():
-            pontos = fila.get()
-            if len(pontos) >= 20:
-                pontos_controle[0].position = ((pontos[4][0])*2, pontos[4][1]*2) # Esquerda
-                pontos_controle[1].position = ((pontos[8][0])*2, pontos[8][1]*2) # Frente
-                pontos_controle[2].position = ((pontos[12][0])*2, pontos[12][1]*2)       # Cima
-                pontos_controle[3].position = ((pontos[16][0])*2, pontos[16][1]*2) # Tras
-                pontos_controle[4].position = ((pontos[20][0])*2, pontos[20][1]*2) # Direita
 
+        if menu_aberto:
+            pygame.draw.rect(tela, (200, 200, 200), rect_menu)
+            tela.blit(fonte.render("MENU", True, (255, 255, 255)), (rect_menu[0], rect_menu[1]))
+            pygame.draw.rect(tela, (100, 100, 100), rect_btn_skin)
+            tela.blit(fonte.render("Skins", True, (255, 255, 255)), (rect_btn_skin[0], rect_btn_skin[1]))
+            pygame.draw.rect(tela, (100, 100, 100), rect_btn_fechar_menu)
+            tela.blit(fonte.render("FECHAR MENU", True, (255, 255, 255)), (rect_btn_fechar_menu[0], rect_btn_fechar_menu[1]))
+            pygame.draw.rect(tela, (100, 100, 100), rect_btn_sair)
+            tela.blit(fonte.render("SAIR", True, (255, 255, 255)), (rect_btn_sair[0], rect_btn_sair[1]))
+            if sinal_ativo:
+                if rect_btn_skin.collidepoint(pos_interacao):
+                    janela_skins_aberta = True
+                if rect_btn_sair.collidepoint(pos_interacao):
+                    rodando = False
+                if rect_btn_fechar_menu.collidepoint(pos_interacao):
+                    menu_aberto = False
+        else:
+            pygame.draw.rect(tela, (150, 150, 150), rect_abrir_menu)
+            tela.blit(fonte.render("ABRIR MENU", True, (255, 255, 255)), (LARGURA - 140, 20))
+        
+        if fila is not None:
+            tela.blit(fonte.render("Controle por Gestos Ativo", True, (0,200,0)), (10, 30))
+            if not fila.empty():
+                pontos = fila.get()
+                if len(pontos) >= 20:
+                    pontos_controle[0].position = ((pontos[4][0])*2, pontos[4][1]*2) # Esquerda
+                    pontos_controle[1].position = ((pontos[8][0])*2, pontos[8][1]*2) # Frente
+                    pontos_controle[2].position = ((pontos[12][0])*2, pontos[12][1]*2) # Cima
+                    pontos_controle[3].position = ((pontos[16][0])*2, pontos[16][1]*2) # Tras
+                    pontos_controle[4].position = ((pontos[20][0])*2, pontos[20][1]*2) # Direita
+            if not config.empty():
+                comando = config.get()
+                if comando == "Fechar":
+                    rodando = False
+            config.put("Fechar")
+
+        if not menu_aberto and sinal_ativo:
+            if rect_abrir_menu.collidepoint(pos_interacao):
+                menu_aberto = True
+        try:
+            raio_interacao = 40 # Tamanho do círculo de alcance
+            if sinal_ativo:
+                # Desenha um círculo semi-transparente ou apenas o contorno na ponta do braço
+                pygame.draw.circle(tela, (0, 255, 0), (int(pos_mao_boneco.x), int(pos_mao_boneco.y)), raio_interacao, 2)
+                if sinal_ativo and conexao_garra is None:
+                    # O sensor agora "escaneia" tudo dentro do raio_interacao ao redor da mão
+                    info = espaco.point_query_nearest(pos_mao_boneco, raio_interacao, pymunk.ShapeFilter())
+
+                    if info and info.shape.body.body_type == pymunk.Body.DYNAMIC:
+                        corpo_objeto = info.shape.body
+
+                        # Criamos o PivotJoint exatamente na posição da mão do boneco
+                        # Isso faz o objeto "grudar" na palma da mão, não importa onde foi tocado
+                        conexao_garra = pymunk.PivotJoint(braco_dir.body, corpo_objeto, pos_mao_boneco)
+                        conexao_garra.max_force = 500000 # Força para conseguir carregar objetos pesados
+                        espaco.add(conexao_garra)
+            elif not sinal_ativo and conexao_garra is not None:
+                # Quando o sinal para, a conexão é removida do espaço físico
+                espaco.remove(conexao_garra)
+                conexao_garra = None
+        except:
+            pass
+        try:
+            if janela_skins_aberta:
+                fundo_skins = pygame.Rect(LARGURA//2 - 250, ALTURA//2 - 200, 500, 400)
+                pygame.draw.rect(tela, (230, 230, 230), fundo_skins)
+                
+                # --- BOTÃO ESPECIAL: DEBUG ---
+                # Colocamos ele fixo na primeira posição
+                rect_debug = pygame.Rect(fundo_skins.x + 30, fundo_skins.y + 50, 80, 80)
+                cor_debug = (0, 255, 0) if mostrar_debug else (150, 150, 150)
+                pygame.draw.rect(tela, cor_debug, rect_debug)
+                
+                # Texto ou ícone simples para o Debug
+                tela.blit(fonte.render("DEBUG", True, (0, 0, 0)), (rect_debug.x + 10, rect_debug.y + 30))
+                
+                if sinal_ativo and rect_debug.collidepoint(pos_interacao):
+                    mostrar_debug = not mostrar_debug # Inverte o estado
+                    # Opcional: limpa as skins para ver só o esqueleto
+                    if mostrar_debug: sprites_boneco = {} 
+                    # Pequeno delay para não clicar e desclicar instantaneamente
+                    pygame.time.delay(200) 
+            
+                # --- RESTANTE DAS SKINS (Deslocadas para frente) ---
+                for i, nome_skin in enumerate(skins_disponiveis):
+                    # Somamos +1 no índice para não ocupar o lugar do botão Debug
+                    indice_ajustado = i + 1 
+                    coluna = indice_ajustado % 4
+                    linha = indice_ajustado // 4
+                    x = fundo_skins.x + 30 + (coluna * 110)
+                    y = fundo_skins.y + 50 + (linha * 110)
+                    
+                    rect_thumb = pygame.Rect(x, y, 80, 80)
+                    pygame.draw.rect(tela, (200, 200, 200), rect_thumb)
+                    
+                    if nome_skin in thumbs_skins:
+                        tela.blit(thumbs_skins[nome_skin], (x + 10, y + 10))
+                    
+                    if sinal_ativo and rect_thumb.collidepoint(pos_interacao):
+                        carregar_skin_pasta(nome_skin)
+                        mostrar_debug = False # Desativa debug ao colocar skin
+                        janela_skins_aberta = False
+                btn_fechar = pygame.Rect(fundo_skins.right - 30, fundo_skins.top + 5, 25, 25)
+                pygame.draw.rect(tela, (255, 0, 0), btn_fechar)
+                if sinal_ativo and btn_fechar.collidepoint(pos_interacao):
+                    janela_skins_aberta = False
+        except:
+            pass
         pygame.display.flip()
         relogio.tick(60)
-        if not config.empty():
-            comando = config.get()
-            if comando == "Fechar":
-                rodando = False
-    config.put("Fechar")
     pygame.quit()
