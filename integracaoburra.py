@@ -337,9 +337,7 @@ def jogo():
 
                     else:
                         acao = "Parado"
-            
-            
-                        
+                                     
             pontos_controle[0].position = ((pontos[4][0])*2+LARGURA//4, pontos[4][1]) # Esquerda
             pontos_controle[1].position = ((pontos[8][0])*2+LARGURA//4, pontos[8][1]) # Frente
             pontos_controle[2].position = ((pontos[12][0])*2+LARGURA//4, pontos[12][1])       # Cima
