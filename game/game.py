@@ -52,6 +52,7 @@ def jogo(fila, config, gestos):
     thumbs_skins = {}
 
     # PONTOS CONTROLE
+    
     pontos_controle = []
 
     for i in range(5):

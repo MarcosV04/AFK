@@ -9,15 +9,9 @@ def main():
     gestos = Queue(maxsize=1)
     config = Queue()
 
-    processo_camera = Process(
-        target=run_hand_tracking,
-        args=(fila, config, gestos)
-    )
+    processo_camera = Process(target=run_hand_tracking, args=(fila, config, gestos))
 
-    processo_jogo = Process(
-        target=jogo,
-        args=(fila, config, gestos)
-    )
+    processo_jogo = Process(target=jogo, args=(fila, config, gestos))
 
     print("Iniciando sistema...")
 
