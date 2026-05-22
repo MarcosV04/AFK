@@ -1,6 +1,6 @@
 from multiprocessing import Process, Queue
 from camera.hand_tracking import run_hand_tracking
-from gamebase import jogo
+from game.game import jogo
 
 
 def main():
