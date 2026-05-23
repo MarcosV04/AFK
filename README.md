@@ -12,7 +12,7 @@ A proposta é desenvolver um jogo onde o jogador controla um personagem no estil
 ---
 
 ## 🎯 Objetivo
-Criar uma aplicação que integre:
+- Criar uma aplicação que integre:
 - Visão computacional
 - Interação em tempo real
 - Desenvolvimento de jogos
@@ -24,6 +24,7 @@ Criar uma aplicação que integre:
 - OpenCV
 - MediaPipe
 - Pygame
+- Pymunk
 - Docker 
 
 ---
@@ -73,11 +74,15 @@ O ambiente será um **palco**, com desafios progressivos:
 - Ajustes finos na detecção de movimentos para melhorar a precisão
 - Uso de Git com versionamento e criação de branch para testes
 
+### 📅 Sprint 3
+
+- 
+
 ---
 
 ## 📌 Status
 - Projeto em fase inicial: (Sprint 1 - concluído ✅)
-- Projeto em fase inicial: (Sprint 2 - em processo )
+- Projeto em fase inicial: (Sprint 2 - concluído ✅)
 - Projeto em fase intermediária: (Sprint 3 - em processo)
 - Projeto em fase intermediária: (Sprint 4 - em processo)
 - Projeto em fase final: (Sprint 5 - em processo)
