@@ -1,0 +1,21 @@
+version: '3.9'
+
+services:
+
+  afk-game:
+    build: .
+    container_name: afk-game
+
+    environment:
+      - DISPLAY=${DISPLAY}
+
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - /dev/video0:/dev/video0
+
+    devices:
+      - /dev/video0:/dev/video0
+
+    privileged: true
+
+    network_mode: host

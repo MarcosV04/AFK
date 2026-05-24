@@ -2,7 +2,7 @@ from physics.world import criar_bloco, criar_corda
 
 
 def criar_boneco(espaco, pontos_controle, largura):
-    
+        
     #corpo do boneco
     torco = criar_bloco(espaco, largura // 2, 200, 75, 90)
     cabeca = criar_bloco(espaco, largura // 2, 90, 80, 80)
