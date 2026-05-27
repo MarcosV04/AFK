@@ -4,11 +4,11 @@ import pymunk.pygame_util
 import math
 import os
 
-from physics.world import criar_chao, criar_bloco
-from characters.boneco import criar_boneco
-from ui.menu import desenhar_menu
+from fisica.mundo import criar_chao, criar_bloco
+from entidades.boneco import criar_boneco
+from game.states.menu import desenhar_menu
 from camera.controle import atualizar_camera
-from skins_system.skins import carregar_skin_pasta, carregar_thumbs
+from game.systems.skins import carregar_skin_pasta, carregar_thumbs
 
 def jogo(fila, config, gestos):
     
@@ -44,10 +44,12 @@ def jogo(fila, config, gestos):
     # SPRITES
     sprites_boneco = carregar_skin_pasta("teste")
 
-    skins_disponiveis = (os.listdir("skins")
-                         
-        if os.path.exists("skins")
-        else [])
+    skins_disponiveis = (
+    os.listdir("assets/skins")
+
+    if os.path.exists("assets/skins")
+    else []
+    )
 
     thumbs_skins = {}
 

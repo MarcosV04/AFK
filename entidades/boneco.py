@@ -1,4 +1,4 @@
-from physics.world import criar_bloco, criar_corda
+from fisica.mundo import criar_bloco, criar_corda
 
 
 def criar_boneco(espaco, pontos_controle, largura):
