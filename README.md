@@ -173,22 +173,31 @@ docker compose up
 ```bash
 AFK/
 ├── assets/
+      └── images/
+             └── menu/
+      └── skins/
+             └── teste/
+             └── testemult/
 ├── camera/
-├── characters/
 ├── config/
-├── game/
-├── physics/
-├── skins/
-├── skins_system/
+├── entidades/
+├── fisica/
+├── jogo/
+      └── states/
+             └── gameplay/
+             └── tela_main/
+             └── tela_pre_game/
+      └── systems/
 ├── ui/
-├── main.py
-├── requirements.txt
-├── Dockerfile
-├── docker-compose.yml
 ├── .dockerignore
 ├── .gitignore
-├── rodar_docker.sh
-└── README.md
+├── docker-compose.yml
+├── dockerfile
+├── main.py
+├── README.md
+├── requirements.txt
+└── rodar_docker.sh
+└── 
 ```
 ---
 ## Desenvolvimento das Sprints:
