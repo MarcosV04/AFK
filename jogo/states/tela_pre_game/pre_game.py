@@ -1,8 +1,8 @@
 import pygame
 
 from ui.button import Button
-from game.systems.skins import load_skin
-from game.systems.skins import listar_skins
+from jogo.systems.skins import load_skin
+from jogo.systems.skins import listar_skins
 
 class PreGame:
 
@@ -10,12 +10,10 @@ class PreGame:
 
         self.width = width
         self.height = height
-
         self.font = pygame.font.SysFont("arial", 60, bold=True)
         
         # fundo
         self.background = pygame.image.load("assets/images/menu/lobby.jpg")
-
         self.background = pygame.transform.scale(self.background, (self.width, self.height))
 
         #overlay
@@ -31,24 +29,18 @@ class PreGame:
         self.scenario_button = Button("CENARIO", 880, 500, 220, 60)
         self.start_button = Button("INICIAR", width // 2 - 150, 610, 300, 70)
         self.config_button = Button("⚙", width - 100, height - 100, 60, 60)
-    
         self.selected_mode = "AFK"
-        
         self.skins = [ "teste", "testemult"]
-
         self.current_skin = 0
-        
         self.skins = listar_skins()
-
         print(self.skins)
-
         self.current_skin = 0
 
         if len(self.skins) > 0:
             self.loaded_skin = load_skin(self.skins[self.current_skin])
         else:
             self.loaded_skin = None
-        
+                    
     def draw(self, screen):
 
         screen.fill((0, 0, 0))
@@ -68,10 +60,9 @@ class PreGame:
         screen.blit(preview_text, (self.preview_rect.x + 85, self.preview_rect.y + 90))
         
         if self.loaded_skin:
-
             head = pygame.transform.scale(self.loaded_skin["cabeca"], (90, 90))
             body = pygame.transform.scale(self.loaded_skin["torco"], (120, 140))
-
+            
             screen.blit(body, (self.preview_rect.centerx - 60, self.preview_rect.centery - 20))
             screen.blit(head, (self.preview_rect.centerx - 45, self.preview_rect.centery - 100))
 

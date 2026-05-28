@@ -26,13 +26,13 @@ def main():
 if __name__ == "__main__":
     main()
     
-'''
+----------------/
 
 import pygame
 
-from game.states.main_menu.main_menu import MainMenu
-from game.states.pre_game.pre_game import PreGame
-from game.systems.skins import load_skin
+from jogo.states.main_menu.menu_inicial import MainMenu
+from jogo.states.pre_game.pre_game import PreGame
+from jogo.systems.skins import load_skin
 
 pygame.init()
 
@@ -109,3 +109,12 @@ while running:
     clock.tick(60)
 
 pygame.quit()
+
+'''
+
+from core.game_manager import GameManager
+from jogo.states.gameplay.game import game
+
+game = GameManager()
+
+game.run()

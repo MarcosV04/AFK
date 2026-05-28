@@ -22,15 +22,12 @@ def carregar_skin_pasta(nome_pasta):
     sprites_boneco = {}
 
     for parte, tamanho in tamanhos.items():
-
         arquivo = f"{caminho}/{parte}.png"
-
+        
         if os.path.exists(arquivo):
-
             img = pygame.image.load(arquivo).convert_alpha()
-
             sprites_boneco[parte] = pygame.transform.scale(img, tamanho)
-
+            
     return sprites_boneco
 
 
@@ -39,13 +36,10 @@ def carregar_thumbs(skins_disponiveis):
     thumbs_skins = {}
 
     for pasta in skins_disponiveis:
-
         caminho = f"assets/skins/{pasta}/cabeca.png"
 
         if os.path.exists(caminho):
-
             img = pygame.image.load(caminho).convert_alpha()
-
             thumbs_skins[pasta] = pygame.transform.scale(img, (60, 60))
 
     return thumbs_skins
