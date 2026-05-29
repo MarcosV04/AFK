@@ -21,14 +21,14 @@ class menu:
         # CONFIG BOTÃO
         button_width = 400
         button_height = 70
-        center_x = (self.width // 2 - button_width // 2)
+        center_x = (self.width // 2 - button_width // 2) - 29
 
         # FONTE
         self.font = pygame.font.SysFont(None, 40)
 
         # BOTÃO PLAY
         #self.play_button = pygame.Rect(center_x, 300, button_width, button_height)
-        self.play_button = Button("JOGAR", center_x, 420, 500, 120, font_size=56)
+        self.play_button = Button("JOGAR", center_x, 370, 460, 128, font_size = 56)
 
     def draw(self, screen):
 

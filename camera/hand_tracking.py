@@ -75,23 +75,27 @@ def run_hand_tracking(fila, config, gestos):
                         cv2.circle(frame, (x, y), 5, (0, 255, 0), -1)
                         
                     # ESCOLHE MÃO DE CONTROLE
-                    if label == ultima_mao or len(pontos) == 0:
+                    #if label == ultima_mao or len(pontos) == 0:
                     
                         # CORRIGE ESPELHAMENTO DA MÃO ESQUERDA
-                        if label == "Left":
+                        #if label == "Left":
                         
-                            pontos_temp[4], pontos_temp[20] = pontos_temp[20], pontos_temp[4]
-                            pontos_temp[8], pontos_temp[16] = pontos_temp[16], pontos_temp[8]
+                            #pontos_temp[4], pontos_temp[20] = pontos_temp[20], pontos_temp[4]
+                            #pontos_temp[8], pontos_temp[16] = pontos_temp[16], pontos_temp[8]
                     
-                        pontos = pontos_temp
+                        #pontos = pontos_temp
     
+                    #else:
+                    
+                        #pontos_gesto = pontos_temp
+                    if len(pontos) == 0:
+
+                        pontos = pontos_temp
+                    
                     else:
                     
                         pontos_gesto = pontos_temp
                         
-                    # SE NÃO ENCONTROU A MÃO PRINCIPAL,
-                    # USA A OUTRA SEM TELEPORTAR
-    
                     if len(pontos) < 21 and len(pontos_gesto) >= 21:
                     
                         pontos = pontos_gesto
@@ -143,14 +147,15 @@ def run_hand_tracking(fila, config, gestos):
             cv2.putText(
                 frame, f"Acao: {acao}", (10, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
     
-            cv2.waitKey(1)
-            
-            #cv2.imshow("AFK - Camera", frame)
-            #tecla = cv2.waitKey(1)
+            pass
+        
+            cv2.imshow("AFK - Camera", frame)
+        
+            tecla = cv2.waitKey(1)
     
-            ## ESC fecha
-            #if tecla == 27:
-            #    break
+            # ESC fecha
+            if tecla == 27:
+                break
     
             # Comunicação de fechamento
             if config is not None and not config.empty():
@@ -164,16 +169,26 @@ def run_hand_tracking(fila, config, gestos):
         print("ERRO NO HAND TRACKING:", erro)
     
     finally:
-    
+
         print("Finalizando processo da câmera...")
-    
-        hands.close()
-    
-        if cap.isOpened():
-            cap.release()
-    
-        cv2.destroyAllWindows()
-    
+
+        try:
+            hands.close()
+        except:
+            pass
+
+        try:
+            if cap.isOpened():
+                cap.release()
+        except:
+            pass
+
+        try:
+            cv2.destroyAllWindows()
+        except:
+            pass
+
+        print("Câmera finalizada!")
     
     if __name__ == "__main__":
     

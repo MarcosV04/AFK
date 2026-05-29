@@ -115,6 +115,6 @@ pygame.quit()
 from core.game_manager import GameManager
 from jogo.states.gameplay.game import game
 
-game = GameManager()
-
-game.run()
+if __name__ == "__main__":
+    game = GameManager()
+    game.run()

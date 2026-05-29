@@ -38,6 +38,7 @@ class game:
 
         # SPRITES
         self.sprites_boneco = carregar_skin_pasta(self.skin)
+        print(self.sprites_boneco.keys())
         self.skins_disponiveis = (
             os.listdir("assets/skins")
 
