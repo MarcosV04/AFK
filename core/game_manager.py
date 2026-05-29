@@ -1,4 +1,5 @@
 import pygame
+import time
 
 from multiprocessing import Process, Queue
 from jogo.states.tela_main.menu_inicial import menu
@@ -39,9 +40,7 @@ class GameManager:
     def iniciar_camera(self):
 
         if self.camera_process is None:
-            self.camera_process = Process(
-                target=run_hand_tracking,
-                args=(self.fila, self.config, self.gestos))
+            self.camera_process = Process(target=run_hand_tracking, args=(self.fila, self.config, self.gestos))
             self.camera_process.start()
 
     def run(self):
@@ -53,6 +52,20 @@ class GameManager:
             self.clock.tick(60)
             pygame.display.update()
         
+        if self.camera_process is None or not self.camera_process.is_alive():
+
+            # avisa a camera para fechar
+            self.config.put("Fechar")
+        
+            # espera ela encerrar corretamente
+            self.camera_process.join(timeout = 3)
+        
+            # segurança extra
+            if self.camera_process.is_alive():
+                self.camera_process.terminate()
+                self.camera_process.join()
+
+            self.camera_process = None
         pygame.quit()
 
     def events(self):
@@ -71,28 +84,29 @@ class GameManager:
                 if self.tela_main.handle_events(event):
                     self.current_state = "pre_game"
 
-            # PRE GAME
+                        # PRE GAME
             elif self.current_state == "pre_game":
-                if self.pre_game.back_button.is_clicked(event):
+                if self.pre_game.back_button.handle_event(event):
                     self.current_state = "menu"
 
                 # TROCAR MODO
-                if self.pre_game.mode_button.is_clicked(event):
+                if self.pre_game.mode_button.handle_event(event):
                     if self.pre_game.selected_mode == "AFK":
                         self.pre_game.selected_mode = "TECLADO"
                     else:
                         self.pre_game.selected_mode = "AFK"
 
                 # TROCAR SKIN
-                if self.pre_game.skin_button.is_clicked(event):
+                if self.pre_game.skin_button.handle_event(event):
                     self.pre_game.current_skin += 1
+                    
                     if (self.pre_game.current_skin >= len(self.pre_game.skins)):
                         self.pre_game.current_skin = 0
-                    self.pre_game.loaded_skin = load_skin(
-                        self.pre_game.skins[self.pre_game.current_skin])
+                    
+                    self.pre_game.loaded_skin = load_skin(self.pre_game.skins[self.pre_game.current_skin])
 
                 # INICIAR JOGO
-                if self.pre_game.start_button.is_clicked(event):
+                if self.pre_game.start_button.handle_event(event):
                     self.iniciar_camera()
                     skin_escolhida = (self.pre_game.skins[self.pre_game.current_skin])
                     self.gameplay = game(self.WIDTH, self.HEIGHT, self.fila, self.config, self.gestos, skin_escolhida)
