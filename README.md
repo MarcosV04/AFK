@@ -219,9 +219,21 @@ AFK/
 - Uso de Git com versionamento e criação de branch para testes
 
 ### 📅 Sprint 3
-- Organização e estruturação dos Arquivos do jogo.
-- Otimização do código.
-- Dockerização e portabilidade com a camêra.
+- Refatoração e reorganização completa da arquitetura do projeto
+- Separação do jogo em múltiplos estados (Menu, Pre-Game, Gameplay, Configurações e Skins)
+- Implementação do sistema de gerenciamento de telas (GameManager)
+- Criação de sistema modular de botões reutilizáveis
+- Desenvolvimento inicial da interface visual do jogo
+- Implementação de animações e efeitos visuais nos botões
+- Criação do sistema de skins modular
+- Estruturação da pasta de assets e organização dos recursos gráficos
+- Implementação de múltiplas telas de navegação 
+- Integração entre gameplay e sistema de seleção de skins
+- Melhorias no sistema de comunicação entre processos
+- Correção do gerenciamento da câmera e encerramento seguro do processo
+- Otimizações gerais de desempenho e estabilidade
+- Dockerização do projeto para facilitar execução em diferentes ambientes
+- Estruturação inicial para futuras expansões do jogo
 
 ---
 
