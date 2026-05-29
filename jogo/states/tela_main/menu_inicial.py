@@ -1,5 +1,7 @@
 import pygame
 
+from ui.button import Button
+
 class menu:
 
     def __init__(self, width, height):
@@ -8,7 +10,7 @@ class menu:
         self.height = height
 
         # BACKGROUND
-        self.background = pygame.image.load("assets/images/menu/lobby.jpg")
+        self.background = pygame.image.load("assets/images/menu/lobby.png")
         self.background = pygame.transform.scale(self.background, (self.width, self.height))
 
         # OVERLAY ESCURO
@@ -25,7 +27,8 @@ class menu:
         self.font = pygame.font.SysFont(None, 40)
 
         # BOTÃO PLAY
-        self.play_button = pygame.Rect(center_x, 300, button_width, button_height)
+        #self.play_button = pygame.Rect(center_x, 300, button_width, button_height)
+        self.play_button = Button("JOGAR", center_x, 420, 500, 120, font_size=56)
 
     def draw(self, screen):
 
@@ -33,20 +36,13 @@ class menu:
         screen.fill((0, 0, 0))
         screen.blit(self.background, (0, 0))
         screen.blit(self.overlay, (0, 0))
-
-        # BOTÃO
-        pygame.draw.rect(screen, (40, 40, 40), self.play_button, border_radius=12)
-        pygame.draw.rect(screen, (255, 255, 255), self.play_button, 3, border_radius=12)
-
-        # TEXTO
-        texto = self.font.render("JOGAR", True, (255, 255, 255))
-        texto_rect = texto.get_rect(center=self.play_button.center)
-        screen.blit(texto, texto_rect)
+        
+        self.play_button.draw(screen)
 
     def handle_events(self, event):
 
         if (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1):
-            if self.play_button.collidepoint(event.pos):
+            if self.play_button.handle_event(event):
 
                 return True
 
