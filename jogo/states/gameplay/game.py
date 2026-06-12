@@ -4,11 +4,13 @@ import pymunk.pygame_util
 import math
 import os
 
-from fisica.mundo import criar_chao, criar_bloco
+from fisica.mundo import criar_chao, criar_bloco, criar_corda
 from entidades.boneco import criar_boneco
 from jogo.states.menu_jogo import desenhar_menu
 from camera.controle import atualizar_camera
 from jogo.systems.skins import carregar_skin_pasta, carregar_thumbs
+from jogo.systems.textura import load_sprites
+from jogo.systems.cenario import load_cenario_texturas
 
 
 class game:
@@ -35,13 +37,14 @@ class game:
         self.ponto_arrastando = None
         self.mouse_joint = None
         self.modo_edicao = False
+        self.sinal_ativo = False
 
         # SPRITES
         self.sprites_boneco = carregar_skin_pasta(self.skin)
-        print(self.sprites_boneco.keys())
+        self.texturas = load_sprites("assets/texturas")
+        self.texturas_cenario = load_cenario_texturas("assets/mapas")
         self.skins_disponiveis = (
             os.listdir("assets/skins")
-
             if os.path.exists("assets/skins")
             else []
         )
@@ -62,7 +65,9 @@ class game:
 
         # CENÁRIO
         criar_chao(self.espaco, self.LARGURA, self.ALTURA)
-        criar_bloco(self.espaco, self.LARGURA // 2 + 200, 100, 20, 100, 50)
+        self.objetos = {}
+        self.objetos["espada"] = (criar_bloco(self.espaco, self.LARGURA // 2 + 200, 100, altura=100, largura=20, massa=50),(altura, largura))
+        self.objetos["box"] = (criar_bloco(self.espaco, self.LARGURA // 2 - 200, 100, altura=100, largura=100, massa=100),(altura, largura))
         self.meu_boneco = criar_boneco(self.espaco, self.pontos_controle, self.LARGURA)
         
         # MOUSE
@@ -81,6 +86,9 @@ class game:
                 self.modo_edicao = not self.modo_edicao
                 self.mostrar_debug = not self.mostrar_debug
                 print("Modo edição:", self.modo_edicao)
+            if event.key == pygame.K_j:
+                self.sinal_ativo = not self.sinal_ativo
+                print("Sinal ativo:", self.sinal_ativo)
 
         # MOUSE APERTADo
         elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -146,7 +154,7 @@ class game:
         pos_mao = braco_dir.body.local_to_world((0, 25))
         raio = 40
 
-        if sinal_ativo:
+        if self.sinal_ativo:
             if self.conexao_garra is None:
                 info = self.espaco.point_query_nearest(pos_mao, raio, pymunk.ShapeFilter())
 
@@ -163,6 +171,9 @@ class game:
     def draw(self, screen):
 
         screen.fill((240, 240, 240))
+        self.fundo=self.texturas_cenario["teatro"]
+        self.fundo=pygame.transform.scale(self.fundo, (self.LARGURA, self.ALTURA))
+        screen.blit(self.fundo, (0, 0))
 
         # CHÃO
         pygame.draw.line(screen, (50, 50, 50), (0, self.ALTURA - 50), (self.LARGURA, self.ALTURA - 50), 5)
@@ -176,7 +187,7 @@ class game:
             pos_b = conexao.b.local_to_world(conexao.anchor_b)
             pygame.draw.line(screen, (70, 40, 20), pos_a, pos_b, 2)
 
-        # DEBUG
+        # DEBUG/SKIN
         if self.mostrar_debug:
             opcoes = pymunk.pygame_util.DrawOptions(screen)
             self.espaco.debug_draw(opcoes)
@@ -188,13 +199,21 @@ class game:
                     img_rot = pygame.transform.rotate(img, -math.degrees(corpo.angle))
                     rect = img_rot.get_rect(center=corpo.position)
                     screen.blit(img_rot, rect)
+            if self.texturas:
+                for nome, img in self.texturas.items():
+                    forma = self.objetos[nome]
+                    corpo = forma[0].body
+                    img_esc=pygame.transform.scale(img, (forma[1][0]/10, forma[1][1]/10))
+                    img_rot = pygame.transform.rotate(img_esc, -math.degrees(corpo.angle))
+                    rect = img_rot.get_rect(center=corpo.position)
+                    screen.blit(img_rot, rect)
 
         # PONTOS CONTROLE
         for p in self.pontos_controle:
             pygame.draw.circle(screen, (0, 100, 255), (int(p.position.x), int(p.position.y)), 15, 2)
 
         # GARRA VISUAL
-        if self.conexao_garra:
+        if self.conexao_garra or self.sinal_ativo:
             braco_dir = self.meu_boneco["antdir"]
             pos_mao = braco_dir.body.local_to_world((0, 25))
             pygame.draw.circle(screen, (0, 255, 0), (int(pos_mao.x), int(pos_mao.y)), 40, 2)

@@ -49,6 +49,11 @@ class GameManager:
             self.camera_process.start()
 
     def run(self):
+        pygame.mixer.init()
+
+        # Carregar e tocar música (loop infinito com -1)
+        pygame.mixer.music.load('assets/sons/musica/teatro.mp3')
+        pygame.mixer.music.set_volume(0.5) # Volume entre 0.0 e 1.0
 
         while self.running:
             self.events()

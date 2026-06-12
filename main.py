@@ -113,7 +113,7 @@ pygame.quit()
 '''
 
 from core.game_manager import GameManager
-from jogo.states.gameplay.game import game
+from jogo.states.gameplay.game0 import game
 
 if __name__ == "__main__":
     game = GameManager()
