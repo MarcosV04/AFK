@@ -21,7 +21,7 @@ def criar_boneco(espaco, pontos_controle, largura):
     criar_corda(espaco, bresq.body, antesq.body, (0, 25), (0, -25), 25)
     criar_corda(espaco, torco.body, bradir.body, (37.5, -30), (0, -25), 20)
     criar_corda(espaco, bradir.body, antdir.body, (0, 25), (0, -25), 25)
-    criar_corda(espaco, torco.body, cintura.body, (0, 45), (0, -17.5), 25)
+    criar_corda(espaco, torco.body, cintura.body, (0, 45), (0, -17.5), 15)
     criar_corda(espaco, cintura.body, peresq.body, (-25, 17.5), (0, -25), 25)
     criar_corda(espaco, peresq.body, panesq.body, (0, 25), (0, -25), 25)
     criar_corda(espaco, cintura.body, perdir.body, (25, 17.5), (0, -25), 25)

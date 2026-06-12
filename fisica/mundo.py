@@ -19,6 +19,8 @@ def criar_bloco(espaco, x, y, largura, altura, massa=10):
     espaco.add(corpo, forma)
     
     return forma
+
+    
     
 def criar_corda(espaco, corpo_a, corpo_b, ancora_a, ancora_b, comprimento):
 
@@ -27,3 +29,4 @@ def criar_corda(espaco, corpo_a, corpo_b, ancora_a, ancora_b, comprimento):
     espaco.add(corda)
 
     return corda
+
