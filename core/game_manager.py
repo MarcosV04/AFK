@@ -128,7 +128,7 @@ class GameManager:
 
             # SKINS
             elif self.current_state == "skins":
-
+                
                 if self.tela_skins.back_button.handle_event(event):
                     self.current_state = "pre_game"
 

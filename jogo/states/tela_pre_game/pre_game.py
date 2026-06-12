@@ -2,7 +2,7 @@ import math
 import pygame
 
 from ui.button import Button
-from jogo.systems.skins import load_skin
+#from jogo.systems.skins import load_skin
 from jogo.systems.skins import listar_skins
 
 
@@ -131,7 +131,7 @@ class PreGame:
         self.back_button.draw(screen)
 
         if len(self.skins) > 0:
-            self.skin_button.text = f"{self.skins[self.current_skin]}"
+            self.skin_button.text = "Skins"
 
         else:
             self.skin_button.text = "Sem skins"
