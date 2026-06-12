@@ -27,6 +27,9 @@ class PreGame:
 
         # botões
         self.back_button = Button("←", 40, 35, 90, 70, font_size = 52)
+        
+        self.modo_jogo = "AFK"
+
 
         #self.skin_button = Button("Skins", 90, 520, 300, 90, font_size = 36)
 

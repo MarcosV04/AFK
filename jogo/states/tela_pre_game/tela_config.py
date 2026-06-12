@@ -15,10 +15,7 @@ class TelaConfig:
             "assets/images/menu/lobby.png"
         )
 
-        self.background = pygame.transform.scale(
-            self.background,
-            (self.width, self.height)
-        )
+        self.background = pygame.transform.scale(self.background, (self.width, self.height))
 
         # OVERLAY
         self.overlay = pygame.Surface((self.width, self.height))
@@ -26,33 +23,25 @@ class TelaConfig:
         self.overlay.fill((0, 0, 0))
 
         # FONTE
-        self.font = pygame.font.SysFont(
-            "times new roman",
-            54,
-            bold=True
-        )
+        self.font = pygame.font.SysFont("times new roman", 54, bold=True)
 
         # TÍTULO
-        self.title = self.font.render(
-            "CONFIGURAÇÕES",
-            True,
-            (230, 210, 160)
-        )
+        self.title = self.font.render("CONFIGURAÇÕES", True, (230, 210, 160))
 
-        self.title_rect = self.title.get_rect(
-            center=(self.width // 2, 60)
-        )
+        self.title_rect = self.title.get_rect(center=(self.width // 2, 60))
 
         # BOTÃO VOLTAR
-        self.back_button = Button(
-            "←",
-            40,
-            35,
-            90,
-            70,
-            font_size=52
-        )
+        self.back_button = Button("←", 40, 35, 90, 70, font_size=52)
+        
+        #modo de jogo
+        self.modo_jogo = "AFK"
+        self.modo_button = Button("Modo: AFK", self.width // 2 - 180, 180, 360, 80, font_size = 36)
 
+        #fullscreen
+        self.tela_cheia = False
+
+        self.fullscreen_button = Button("Tela Cheia: OFF", self.width // 2 - 180, 280, 360, 80, font_size=36)
+        
     def draw(self, screen):
 
         # FUNDO
@@ -63,6 +52,10 @@ class TelaConfig:
 
         # TÍTULO
         screen.blit(self.title, self.title_rect)
-
+        
         # BOTÃO
         self.back_button.draw(screen)
+        self.modo_button.draw(screen)
+        
+        #fullscreen
+        self.fullscreen_button.draw(screen)

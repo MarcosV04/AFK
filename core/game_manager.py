@@ -129,9 +129,29 @@ class GameManager:
 
             # CONFIG
             elif self.current_state == "config":
-
+            
                 if self.tela_config.back_button.handle_event(event):
                     self.current_state = "pre_game"
+
+                if self.tela_config.modo_button.handle_event(event):
+                
+                    if self.tela_config.modo_jogo == "AFK":
+                        self.tela_config.modo_jogo = "TECLADO"
+
+                    else:
+                        self.tela_config.modo_jogo = "AFK"
+                    self.tela_config.modo_button.text = f"Modo: {self.tela_config.modo_jogo}"
+                    
+                if self.tela_config.fullscreen_button.handle_event(event):
+                   self.tela_config.tela_cheia = not self.tela_config.tela_cheia
+
+                   if self.tela_config.tela_cheia:
+                       self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT), pygame.FULLSCREEN)
+                       self.tela_config.fullscreen_button.text = "Tela Cheia: ON"
+
+                   else:
+                       self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
+                       self.tela_config.fullscreen_button.text = "Tela Cheia: OFF"
 
             # GAMEPLAY
             elif self.current_state == "gameplay":
