@@ -4,9 +4,12 @@ from ui.button import Button
 from jogo.systems.skins import load_skin, listar_skins
 import math
 import os
+from jogo.states.tela_pre_game.pre_game import PreGame
 
 
 class TelaSkins:
+
+    val=0
 
     def __init__(self, width, height):
 
@@ -86,24 +89,36 @@ class TelaSkins:
 
         for i, nome_skin in enumerate(os.listdir(self.skins_caminho)):
             # Somamos +1 no índice para não ocupar o lugar do botão Debug
-            indice_ajustado = i 
-            coluna = indice_ajustado % 4
-            linha = indice_ajustado // 4
-            x = fundo_skins.x + 30 + (coluna * 110)
-            y = fundo_skins.y + 50 + (linha * 110)
-            
-            rect_thumb = pygame.Rect(x, y, 80, 80)
-            pygame.draw.rect(screen, (200, 200, 200), rect_thumb)
+            self.indice_ajustado = i 
+            self.coluna = self.indice_ajustado % 4
+            self.linha = self.indice_ajustado // 4
+            x = fundo_skins.x + 10 + (self.coluna * 110)
+            y = fundo_skins.y + 50 + (self.linha * 110)
+            Button(f"{i}", x, y, 100, 100).draw(screen)
+
             
             if nome_skin in self.thumbs_skins:
-                screen.blit(self.thumbs_skins[nome_skin], (x + 10, y + 10))
+                screen.blit(self.thumbs_skins[nome_skin], (x + 20, y + 20))
+            for event in pygame.event.get():
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    self.botao=1
+                else:                    
+                    self.botao=0
+            if Button(f"{i}", x, y, 100, 100).handle_event(pygame.event.Event(pygame.MOUSEBUTTONDOWN, pos=pygame.mouse.get_pos(), button=self.botao)):
+                print(f"Skin {nome_skin} selecionada!")
+                self.val=i
+                
+            #if Button.handle_event(self, event):
+            #    carregar_skin_pasta(nome_skin)
 
+
+               
         # PREVIEW
         self.preview_rect = pygame.Rect(self.width // 2 + 50, 170, 500, 320)
 
         self.skins = listar_skins()
 
-        self.current_skin = 0
+        self.current_skin = self.val
 
         if len(self.skins) > 0:
             self.loaded_skin = load_skin(

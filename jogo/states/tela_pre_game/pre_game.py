@@ -60,7 +60,8 @@ class PreGame:
         self.skins = listar_skins()
         self.current_skin = 0
 
-        print(self.skins)
+        #print(self.skins)
+        #print(self.current_skin)
 
         # PREVIEW
         #self.preview_rect = pygame.Rect( width // 2 - 250, 100, 500, 320)
@@ -75,7 +76,9 @@ class PreGame:
         ## texto preview
         #self.preview_text = self.font.render("PERSONAGEM", True, (230, 210, 160))
         #self.preview_rect_text = self.preview_text.get_rect(
-        #    center = (self.preview_rect.centerx, self.preview_rect.y + 40))
+        
+    def atualizar_current_skin(self, valor):
+        self.current_skin = valor
 
     def draw(self, screen):
 

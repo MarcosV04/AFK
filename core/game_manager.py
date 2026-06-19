@@ -119,7 +119,7 @@ class GameManager:
                     try:
                         self.iniciar_camera()
 
-                        skin_escolhida = self.pre_game.skins[self.pre_game.current_skin]
+                        skin_escolhida = self.pre_game.skins[self.tela_skins.val]
                         self.gameplay = game(self.WIDTH, self.HEIGHT, self.fila, self.config, self.gestos, skin_escolhida)
                         self.current_state = "gameplay"
                         
@@ -128,7 +128,7 @@ class GameManager:
 
             # SKINS
             elif self.current_state == "skins":
-                
+
                 if self.tela_skins.back_button.handle_event(event):
                     self.current_state = "pre_game"
 
@@ -186,6 +186,7 @@ class GameManager:
         # TELA SKINS
         elif self.current_state == "skins":
             self.tela_skins.draw(self.screen)
+            
 
         # TELA CONFIG
         elif self.current_state == "config":
