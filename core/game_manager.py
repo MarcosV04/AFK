@@ -1,5 +1,4 @@
 import pygame
-import time
 
 from multiprocessing import Process, Queue
 from jogo.states.tela_main.menu_inicial import menu
@@ -7,6 +6,9 @@ from jogo.states.tela_pre_game.pre_game import PreGame
 from jogo.states.gameplay.game import game
 from jogo.systems.skins import load_skin
 from camera.hand_tracking import run_hand_tracking
+from jogo.states.tela_pre_game.tela_skins import TelaSkins
+from jogo.states.tela_pre_game.tela_config import TelaConfig
+
 class GameManager:
 
     def __init__(self):
@@ -31,11 +33,14 @@ class GameManager:
         # STATES
         self.tela_main = menu(self.WIDTH, self.HEIGHT)
         self.pre_game = PreGame(self.WIDTH, self.HEIGHT)
+        self.tela_skins = TelaSkins(self.WIDTH, self.HEIGHT)
+        self.tela_config = TelaConfig(self.WIDTH, self.HEIGHT)
         self.gameplay = None
 
         # STATE ATUAL
         self.current_state = "menu"
         self.running = True
+        self.skin_selecionada = "teste"
 
     def iniciar_camera(self):
 
@@ -49,6 +54,10 @@ class GameManager:
         # Carregar e tocar música (loop infinito com -1)
         pygame.mixer.music.load('assets/sons/musica/teatro.mp3')
         pygame.mixer.music.set_volume(0.5) # Volume entre 0.0 e 1.0
+
+        # Carregar e tocar música (loop infinito com -1)
+        pygame.mixer.music.load('assets/sons/musica/teatro.mp3')
+        pygame.mixer.music.set_volume(0.5) # Volume entre 0.0 e 1.0
         pygame.mixer.music.play(-1)
         while self.running:
             self.events()
@@ -57,7 +66,7 @@ class GameManager:
             self.clock.tick(60)
             pygame.display.update()
         
-        if self.camera_process is None or not self.camera_process.is_alive():
+        if self.camera_process is not None:
 
             # avisa a camera para fechar
             self.config.put("Fechar")
@@ -71,11 +80,14 @@ class GameManager:
                 self.camera_process.join()
 
             self.camera_process = None
+            
         pygame.quit()
 
     def events(self):
 
         for event in pygame.event.get():
+
+            # FECHAR JOGO
             if event.type == pygame.QUIT:
                 self.running = False
 
@@ -84,41 +96,75 @@ class GameManager:
                 if event.key == pygame.K_ESCAPE:
                     self.running = False
 
-            # MENU PRINCIPAL
+            # MENU
             if self.current_state == "menu":
+
                 if self.tela_main.handle_events(event):
                     self.current_state = "pre_game"
 
-                        # PRE GAME
+            # PRE GAME
             elif self.current_state == "pre_game":
+
+                # VOLTAR
                 if self.pre_game.back_button.handle_event(event):
                     self.current_state = "menu"
 
-                # TROCAR MODO
-                if self.pre_game.mode_button.handle_event(event):
-                    if self.pre_game.selected_mode == "AFK":
-                        self.pre_game.selected_mode = "TECLADO"
-                    else:
-                        self.pre_game.selected_mode = "AFK"
-
-                # TROCAR SKIN
+                # SKINS
                 if self.pre_game.skin_button.handle_event(event):
-                    self.pre_game.current_skin += 1
-                    
-                    if (self.pre_game.current_skin >= len(self.pre_game.skins)):
-                        self.pre_game.current_skin = 0
-                    
-                    self.pre_game.loaded_skin = load_skin(self.pre_game.skins[self.pre_game.current_skin])
+                    self.current_state = "skins"
 
-                # INICIAR JOGO
+                # CONFIG
+                if self.pre_game.config_button.handle_event(event):
+                    self.current_state = "config"
+
+                # START
                 if self.pre_game.start_button.handle_event(event):
-                    self.iniciar_camera()
-                    skin_escolhida = (self.pre_game.skins[self.pre_game.current_skin])
-                    self.gameplay = game(self.WIDTH, self.HEIGHT, self.fila, self.config, self.gestos, skin_escolhida)
-                    self.current_state = "gameplay"
+                    
+                    try:
+                        self.iniciar_camera()
+
+                        skin_escolhida = self.pre_game.skins[self.tela_skins.val]
+                        self.gameplay = game(self.WIDTH, self.HEIGHT, self.fila, self.config, self.gestos, skin_escolhida)
+                        self.current_state = "gameplay"
+                        
+                    except Exception as erro:
+                        print("Erro ao inicializar o jogo:", erro)
+
+            # SKINS
+            elif self.current_state == "skins":
+
+                if self.tela_skins.back_button.handle_event(event):
+                    self.current_state = "pre_game"
+
+            # CONFIG
+            elif self.current_state == "config":
+            
+                if self.tela_config.back_button.handle_event(event):
+                    self.current_state = "pre_game"
+
+                if self.tela_config.modo_button.handle_event(event):
+                
+                    if self.tela_config.modo_jogo == "AFK":
+                        self.tela_config.modo_jogo = "TECLADO"
+
+                    else:
+                        self.tela_config.modo_jogo = "AFK"
+                    self.tela_config.modo_button.text = f"Modo: {self.tela_config.modo_jogo}"
+                    
+                if self.tela_config.fullscreen_button.handle_event(event):
+                   self.tela_config.tela_cheia = not self.tela_config.tela_cheia
+
+                   if self.tela_config.tela_cheia:
+                       self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT), pygame.FULLSCREEN)
+                       self.tela_config.fullscreen_button.text = "Tela Cheia: ON"
+
+                   else:
+                       self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
+                       self.tela_config.fullscreen_button.text = "Tela Cheia: OFF"
 
             # GAMEPLAY
             elif self.current_state == "gameplay":
+
                 self.gameplay.handle_events(event)
 
     def update(self):
@@ -140,3 +186,13 @@ class GameManager:
         # GAMEPLAY
         elif self.current_state == "gameplay":
             self.gameplay.draw(self.screen)
+        
+        # TELA SKINS
+        elif self.current_state == "skins":
+            self.tela_skins.draw(self.screen)
+            
+
+        # TELA CONFIG
+        elif self.current_state == "config":
+            self.tela_config.draw(self.screen)
+    

@@ -29,7 +29,9 @@ A proposta é desenvolver um jogo onde o jogador controla um personagem no estil
 
 ---
 
-## 👁️ Visão Computacional
+## ⚙️ Funcionalidades Implementadas
+
+### 👁️ Visão Computacional
 - Captura de vídeo em tempo real
 - Detecção das mãos simultaneamente
 - Rastreamento dos 21 pontos da mão (landmarks)
@@ -51,157 +53,10 @@ O ambiente será um **palco**, com desafios progressivos:
 
 ---
 
-## ⚙️ Como Executar o Projeto
-
-### 1. Clone o repositório
-
-```bash
-git clone https://github.com/MarcosV04/AFK.git
-cd AFK
-```
-
----
-
-## 🖥️ Execução Local
-
-### 2. Crie e ative o ambiente virtual
-- Linux
-
-```bash
-python -m venv venv
-source venv/bin/activate
-```
-
-- Windows
-
-```bash
-python -m venv venv
-venv\Scripts\activate
-```
-
----
-
-### 3. Instale as dependências
-
-```bash
-pip install -r requirements.txt
-```
-
----
-
-### 4. Execute o projeto
-
-```bash
-python main.py
-```
-
----
-
-## 🐳 Docker e Docker Compose
-
-### 1. build do docker
-- Docker
-```bash
-docker build -t afk-game .
-```
-
-- Docker Compose
-```bash
-docker compose up --build
-```
----
-
-### 2. Permissão de interface gráfica
-- Linux
-```bash
-xhost +local:docker
-```
-
----
-
-### 3. Executar container
-- Linux
-```bash
-docker run \
---device=/dev/video0 \
--e DISPLAY=$DISPLAY \
--v /tmp/.X11-unix:/tmp/.X11-unix \
-afk-game
-```
----
-
-### 4. Comando para utilizar script auxiliar
-- Docker (Linux)
-```bash
-chmod +x rodar_docker.sh
-```
----
-
-### 5. Executando
-- Docker (Linux)
-```bash
-./rodar_docker.sh
-```
-
-- Docker (Windows)
-```bash
-docker run --device=/dev/video0 afk-game
-```
-
-- Docker Compose
-```bash
-docker compose up
-```
-
----
-
-## ⚠️ Observações
-
-### Linux
-- Necessário permitir acesso gráfico.
-- Necessário possuir webcam conectada.
-
-### Windows
-- Recomendado utilizar Docker Desktop
-- Algumas funções relacionadas à câmera podem variar dependendo da configuração do WSL2
-- Recomendado usar Docker Compose
-
----
-
-# 📂 Estrutura do Projeto
-
-```bash
-AFK/
-├── assets/
-      └── images/
-             └── menu/
-      └── skins/
-             └── teste/
-             └── testemult/
-├── camera/
-├── config/
-├── entidades/
-├── fisica/
-├── jogo/
-      └── states/
-             └── gameplay/
-             └── tela_main/
-             └── tela_pre_game/
-      └── systems/
-├── ui/
-├── .dockerignore
-├── .gitignore
-├── docker-compose.yml
-├── dockerfile
-├── main.py
-├── README.md
-├── requirements.txt
-└── rodar_docker.sh
-└── 
-```
----
 ## Desenvolvimento das Sprints:
+
 ### 📅 Sprint 1
+
 - Estruturação do repositório no GitHub
 - Definição das tecnologias
 - Organização inicial do projeto
@@ -209,6 +64,7 @@ AFK/
 - Início dos estudos com visão computacional
 
 ### 📅 Sprint 2
+
 - Implementação do sistema de hand tracking com MediaPipe
 - Detecção de duas mãos simultaneamente (direita e esquerda)
 - Mapeamento dos 21 landmarks da mão para coordenadas na tela
@@ -219,29 +75,16 @@ AFK/
 - Uso de Git com versionamento e criação de branch para testes
 
 ### 📅 Sprint 3
-- Refatoração e reorganização completa da arquitetura do projeto
-- Separação do jogo em múltiplos estados (Menu, Pre-Game, Gameplay, Configurações e Skins)
-- Implementação do sistema de gerenciamento de telas (GameManager)
-- Criação de sistema modular de botões reutilizáveis
-- Desenvolvimento inicial da interface visual do jogo
-- Implementação de animações e efeitos visuais nos botões
-- Criação do sistema de skins modular
-- Estruturação da pasta de assets e organização dos recursos gráficos
-- Implementação de múltiplas telas de navegação 
-- Integração entre gameplay e sistema de seleção de skins
-- Melhorias no sistema de comunicação entre processos
-- Correção do gerenciamento da câmera e encerramento seguro do processo
-- Otimizações gerais de desempenho e estabilidade
-- Dockerização do projeto para facilitar execução em diferentes ambientes
-- Estruturação inicial para futuras expansões do jogo
+
+- 
 
 ---
 
 ## 📌 Status
-- Sprint 1 - concluída (✅)
-- Sprint 2 - concluída (✅)
-- Sprint 3 - em desenvolvimento (🛠️)
-- Sprint 4 - planejada 
-- Sprint 5 - planejada 
+- Projeto em fase inicial: (Sprint 1 - concluído ✅)
+- Projeto em fase inicial: (Sprint 2 - concluído ✅)
+- Projeto em fase intermediária: (Sprint 3 - em processo)
+- Projeto em fase intermediária: (Sprint 4 - em processo)
+- Projeto em fase final: (Sprint 5 - em processo)
 
 ---

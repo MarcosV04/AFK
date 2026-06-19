@@ -1,25 +1,22 @@
+version: '3.9'
+
 services:
 
   afk-game:
     build: .
     container_name: afk-game
-  
-    
+
     environment:
       - DISPLAY=${DISPLAY}
-      - XDG_RUNTIME_DIR=/tmp/runtime-root
-  
+      - XDG_RUNTIME_DIR=/tmp/runtime
+
     volumes:
-      - .:/app
       - /tmp/.X11-unix:/tmp/.X11-unix
-  
+      - /dev/video0:/dev/video0
+
     devices:
       - /dev/video0:/dev/video0
-  
-    privileged: true
-  
-    network_mode: host
-  
-    stdin_open: true
-    tty: true
 
+    privileged: true
+
+    network_mode: host
