@@ -55,6 +55,10 @@ class GameManager:
         pygame.mixer.music.load('assets/sons/musica/teatro.mp3')
         pygame.mixer.music.set_volume(0.5) # Volume entre 0.0 e 1.0
 
+        # Carregar e tocar música (loop infinito com -1)
+        pygame.mixer.music.load('assets/sons/musica/teatro.mp3')
+        pygame.mixer.music.set_volume(0.5) # Volume entre 0.0 e 1.0
+        pygame.mixer.music.play(-1)
         while self.running:
             self.events()
             self.update()
