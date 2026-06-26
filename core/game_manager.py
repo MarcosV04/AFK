@@ -129,13 +129,17 @@ class GameManager:
 
                 # START
                 if self.pre_game.start_button.handle_event(event):
-                    
                     try:
-
                         if self.tela_config.modo_jogo == "AFK":
                             self.iniciar_camera()
 
-                        skin_escolhida = self.tela_skins.skin_selecionada_nome # <-- Novo (pega o nome exato)
+                        # PEGA O NOME DA SKIN COM SEGURANÇA
+                        try:
+                            skin_escolhida = self.tela_skins.skin_selecionada_nome
+                        except AttributeError:
+                            skin_escolhida = "padrao" # Prevenção caso a tela de skins não tenha sido aberta
+
+                        # PASSA A 'skin_escolhida' PARA O JOGO
                         self.gameplay = game(self.WIDTH, self.HEIGHT, self.fila, self.config, self.gestos, skin_escolhida)
                         self.current_state = "gameplay"
                         

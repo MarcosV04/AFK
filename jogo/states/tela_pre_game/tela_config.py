@@ -14,7 +14,10 @@ class TelaConfig:
         self.background = pygame.image.load(
             "assets/images/menu/lobby.png"
         )
-
+        self.fundo_tela_rect = pygame.transform.scale(
+            pygame.image.load("assets/images/menu/beckmenu.png").convert(),
+            (500, 400)
+        )
         self.background = pygame.transform.scale(self.background, (self.width, self.height))
 
         # OVERLAY
@@ -52,6 +55,9 @@ class TelaConfig:
 
         # TÍTULO
         screen.blit(self.title, self.title_rect)
+
+        # FUNDO DA TELA DE CONFIGURAÇÕES
+        screen.blit(self.fundo_tela_rect, (self.width // 2 - 250, 120))
         
         # BOTÃO
         self.back_button.draw(screen)
