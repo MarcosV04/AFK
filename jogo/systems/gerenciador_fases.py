@@ -3,12 +3,14 @@ import pymunk
 import random
 
 class GerenciadorFases:
-    def __init__(self, espaco, largura, altura, mapa_atual):
+    # Adicionamos "sons" aqui no final
+    def __init__(self, espaco, largura, altura, mapa_atual, sons):
         self.espaco = espaco
         self.largura = largura
         self.altura = altura
         self.mapa_atual = mapa_atual 
-        
+        self.sons = sons 
+
         self.tempo_inicio = pygame.time.get_ticks()
         self.ultimo_spawn = self.tempo_inicio
         
@@ -106,6 +108,7 @@ class GerenciadorFases:
         forma.color = (255, 0, 0, 255)
         self.espaco.add(corpo, forma)
         corpo.apply_impulse_at_local_point((15000, -500))
+        self.sons["disparo_flecha"].play() 
         self.obstaculos_ativos.append({"corpo": corpo, "forma": forma, "tipo": "flecha", "criacao": tempo_atual})
 
     def atirar_canhao(self, tempo_atual):
@@ -117,6 +120,7 @@ class GerenciadorFases:
         forma.color = (50, 50, 50, 255)
         self.espaco.add(corpo, forma)
         corpo.apply_impulse_at_local_point((80000, -15000))
+        self.sons["disparo_canhao"].play()
         self.obstaculos_ativos.append({"corpo": corpo, "forma": forma, "tipo": "canhao", "criacao": tempo_atual})
 
     def cair_espinho(self, tempo_atual):
@@ -126,16 +130,18 @@ class GerenciadorFases:
         forma.collision_type = 3
         forma.color = (150, 0, 150, 255)
         self.espaco.add(corpo, forma)
+        self.sons["disparo_espinho"].play()
         self.obstaculos_ativos.append({"corpo": corpo, "forma": forma, "tipo": "espinho", "criacao": tempo_atual})
 
     def gerar_onda(self, tempo_atual):
-        corpo = pymunk.Body(100, pymunk.moment_for_box(100, (80, 50)))
+        corpo = pymunk.Body(100, pymunk.moment_for_box(100, (160, 100)))
         corpo.position = (10, self.altura - 75)
         forma = pymunk.Poly.create_box(corpo, (80, 50))
         forma.collision_type = 3
         forma.color = (0, 100, 255, 255)
         forma.friction = 0.0 
         self.espaco.add(corpo, forma)
+        self.sons["disparo_onda"].play()
         self.obstaculos_ativos.append({"corpo": corpo, "forma": forma, "tipo": "onda", "criacao": tempo_atual})
 
     def verificar_anti_voo(self, tempo_atual, boneco):
