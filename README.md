@@ -28,12 +28,6 @@ A proposta é desenvolver um jogo onde o jogador controla um personagem no estil
 - Docker 
 
 ---
-
----
-
-## ⚙️ Funcionalidades Implementadas
-
-### 👁️ Visão Computacional
 ## 👁️ Visão Computacional
 - Captura de vídeo em tempo real
 - Detecção das mãos simultaneamente
@@ -41,18 +35,14 @@ A proposta é desenvolver um jogo onde o jogador controla um personagem no estil
 @@ -53,18 +51,155 @@ O ambiente será um **palco**, com desafios progressivos:
 
 ---
+## ⚙️ Executando o Projeto
 
-## Desenvolvimento das Sprints:
-## ⚙️ Como Executar o Projeto
-
-### 📅 Sprint 1
 ### 1. Clone o repositório
 
 ```bash
 git clone https://github.com/MarcosV04/AFK.git
 cd AFK
 ```
-
 ---
 
 ## 🖥️ Execução Local
