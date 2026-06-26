@@ -83,6 +83,7 @@ class PreGame:
     def draw(self, screen):
 
         screen.fill((0, 0, 0))
+        pygame.draw.rect(screen, (255,0,0), (100,100,300,300))
 
         # fundo
         screen.blit(self.background, (0, 0))

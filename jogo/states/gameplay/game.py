@@ -38,7 +38,8 @@ class game:
         self.mouse_joint = None
         self.modo_edicao = False
         self.sinal_ativo = False
-
+        self.sair_partida = False
+        
         # SPRITES
         self.sprites_boneco = carregar_skin_pasta(self.skin)
         self.texturas = load_sprites("assets/texturas")
@@ -73,8 +74,16 @@ class game:
         # MOUSE
         self.mouse_body = pymunk.Body(body_type=pymunk.Body.KINEMATIC)
 
-        # MENU
+        # MENU e BTS
         self.rect_abrir_menu = pygame.Rect(self.LARGURA - 150, 10, 140, 40)
+
+        # MENU e BTS
+        self.rect_abrir_menu = pygame.Rect(self.LARGURA - 150, 10, 140, 40)
+        self.rect_continuar = pygame.Rect(self.LARGURA - 240, 110, 200, 40)
+        self.rect_sair = pygame.Rect(self.LARGURA - 240, 170, 200, 40)
+
+        # Teclado
+        self.velocidade_teclado = 10
 
     def handle_events(self, event):
 
@@ -98,6 +107,15 @@ class game:
                 if self.rect_abrir_menu.collidepoint(mouse_pos):
                     print("Funciona o menu")
                     self.menu_aberto = not self.menu_aberto
+                    
+                # BOTÕES DO MENU
+                elif self.menu_aberto:
+                
+                    if self.rect_continuar.collidepoint(mouse_pos):
+                        self.menu_aberto = False
+
+                    elif self.rect_sair.collidepoint(mouse_pos):
+                        self.sair_partida = True   
                 else:
                     info = self.espaco.point_query_nearest(mouse_pos, 0, pymunk.ShapeFilter())
 
