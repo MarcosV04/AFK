@@ -15,14 +15,14 @@ from jogo.systems.cenario import load_cenario_texturas
 
 class game:
 
-    def __init__(self, largura, altura, fila, config, gestos, skin):
+    def __init__(self, largura, altura, fila, config, gestos, skin_escolhida):
 
         self.LARGURA = largura
         self.ALTURA = altura
         self.fila = fila
         self.config = config
         self.gestos = gestos
-        self.skin = skin
+        self.skin = skin_escolhida
         self.fonte = pygame.font.SysFont(None, 24)
 
         # FÍSICA
@@ -70,6 +70,7 @@ class game:
         self.objetos["espada"] = (criar_bloco(self.espaco, self.LARGURA // 2 + 200, 100, altura=100, largura=20, massa=50),(altura, largura))
         self.objetos["box"] = (criar_bloco(self.espaco, self.LARGURA // 2 - 200, 100, altura=100, largura=100, massa=100),(altura, largura))
         self.meu_boneco = criar_boneco(self.espaco, self.pontos_controle, self.LARGURA)
+    
         
         # MOUSE
         self.mouse_body = pymunk.Body(body_type=pymunk.Body.KINEMATIC)
@@ -85,6 +86,11 @@ class game:
         # Teclado
         self.velocidade_teclado = 10
 
+        # --- HANDLERS DE COLISÃO ---
+
+        # 1 = Boneco | 2 = Flechas (uso único) | 3 = Ondas/Espinhos (contínuo)
+        self.espaco.on_collision(1, 2, begin=self.colisao_projetil_unico)
+
     def handle_events(self, event):
 
         mouse_pos = pygame.mouse.get_pos()
@@ -98,6 +104,10 @@ class game:
             if event.key == pygame.K_j:
                 self.sinal_ativo = not self.sinal_ativo
                 print("Sinal ativo:", self.sinal_ativo)
+                
+            # ADICIONE AQUI O GATILHO DA FLECHA
+            if event.key == pygame.K_f:
+                self.atirar_flecha()
 
         # MOUSE APERTADo
         elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -238,3 +248,79 @@ class game:
 
         # MENU
         desenhar_menu(screen, self.fonte, self.rect_abrir_menu, self.menu_aberto, self.LARGURA)
+    def colisao_projetil_unico(self, arbiter, space, data):
+        # Descobre quem é quem na batida
+        forma_boneco, forma_flecha = arbiter.shapes 
+        tempo_atual = pygame.time.get_ticks()
+
+        # Checa I-frames (1000 milissegundos = 1 segundo de intangibilidade)
+        if tempo_atual - forma_boneco.ultimo_dano > 1000:
+            
+            # Aplica o dano (ex: 35 de dano, quebra no 3º hit)
+            forma_boneco.vida -= 35 
+            forma_boneco.ultimo_dano = tempo_atual
+            
+            print(f"DANO! {forma_boneco.nome_membro} recebeu uma flechada! Vida: {forma_boneco.vida}")
+
+            # Se a vida zerar, agenda a quebra do membro
+            if forma_boneco.vida <= 0:
+                space.add_post_step_callback(self.quebrar_membro, forma_boneco)
+
+        # A flecha é "uso único", então sempre agendamos a destruição dela
+        space.add_post_step_callback(self.destruir_projetil, forma_flecha)
+        
+        # Retorna True para que a flecha empurre o boneco fisicamente. 
+        # (Se retornar False, a flecha atravessa como um fantasma dando dano)
+        return True 
+
+    def destruir_projetil(self, space, forma_projetil, *args):
+        # Remove a flecha do mundo físico para ela sumir da tela
+        if forma_projetil in space.shapes:
+            space.remove(forma_projetil, forma_projetil.body)
+
+    def quebrar_membro(self, space, forma_boneco, *args):
+        # Verifica GAME OVER
+        if forma_boneco.nome_membro in ["cabeca", "torco"]:
+            print("💀 GAME OVER! Parte vital destruída!")
+            self.sair_partida = True # Encerra a partida e volta pro menu
+            return
+
+        print(f"💥 O membro {forma_boneco.nome_membro} foi arrancado!")
+        
+        # Procura e deleta as cordas conectadas a este membro
+        cordas_para_remover = []
+        for rest in space.constraints:
+            if rest.a == forma_boneco.body or rest.b == forma_boneco.body:
+                cordas_para_remover.append(rest)
+        
+        for c in cordas_para_remover:
+            space.remove(c)
+            
+        # Opcional: Se quiser que o pedaço do corpo suma da tela também, descomente abaixo:
+        # space.remove(forma_boneco, forma_boneco.body)
+
+    def atirar_flecha(self):
+        """Cria um projétil do lado esquerdo e atira contra o boneco."""
+        massa = 5
+        momento = pymunk.moment_for_box(massa, (60, 10))
+        corpo = pymunk.Body(massa, momento)
+        
+        # Posição inicial: Canto esquerdo, na altura do peito/braço
+        corpo.position = (10, self.ALTURA // 2 - 50) 
+        
+        forma = pymunk.Poly.create_box(corpo, (60, 10))
+        forma.friction = 0.5
+        forma.elasticity = 0.5
+        forma.collision_type = 2 # Tag 2 = Projétil de uso único (Flecha)
+        
+        # Opcional: Adiciona uma cor vermelha para o Modo Debug
+        forma.color = (255, 0, 0, 255) 
+        
+        # Adiciona no espaço físico
+        self.espaco.add(corpo, forma)
+        
+        # Dá um "tiro" (Impulso horizontal para a direita)
+        # O leve valor negativo no Y (-2000) serve para compensar a gravidade enquanto ela voa
+        corpo.apply_impulse_at_local_point((15000, -2000)) 
+        
+        print("🏹 Flecha disparada!")

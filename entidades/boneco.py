@@ -32,7 +32,7 @@ def criar_boneco(espaco, pontos_controle, largura):
     criar_corda(espaco, pontos_controle[1], peresq.body, (0, 0), (0, 25), 400)
     criar_corda(espaco, pontos_controle[3], perdir.body, (0, 0), (0, 25), 400)
 
-    return {
+    partes = {
         "cabeca": cabeca,
         "torco": torco,
         "bresq": bresq,
@@ -45,3 +45,12 @@ def criar_boneco(espaco, pontos_controle, largura):
         "pandir": pandir,
         "cintura": cintura
     }
+
+    # --- SISTEMA DE STATUS (Vida e Colisão) ---
+    for nome, forma in partes.items():
+        forma.collision_type = 1    # Tipo 1 = Pertence ao jogador
+        forma.nome_membro = nome    # Guarda o nome ("cabeca", "bradir") dentro da física
+        forma.vida = 100            # Cada membro nasce com 100 de vida
+        forma.ultimo_dano = 0       # Cronômetro zerado para a semi-intangibilidade
+
+    return partes
