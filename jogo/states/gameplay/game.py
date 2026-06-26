@@ -11,6 +11,7 @@ from camera.controle import atualizar_camera
 from jogo.systems.skins import carregar_skin_pasta, carregar_thumbs
 from jogo.systems.textura import load_sprites
 from jogo.systems.cenario import load_cenario_texturas
+from jogo.systems.gerenciador_fases import GerenciadorFases # Ajuste o caminho conforme sua pasta
 
 
 class game:
@@ -86,10 +87,17 @@ class game:
         # Teclado
         self.velocidade_teclado = 10
 
-        # --- HANDLERS DE COLISÃO ---
+        # --- GERENCIADOR DE FASES ---
+        # Exemplo: O mapa atual está chumbado como "teatro_praia" para testar todos os obstáculos
+        self.gerenciador = GerenciadorFases(self.espaco, self.LARGURA, self.ALTURA, "teatro_praia")
 
-        # 1 = Boneco | 2 = Flechas (uso único) | 3 = Ondas/Espinhos (contínuo)
-        self.espaco.on_collision(1, 2, begin=self.colisao_projetil_unico)
+        # --- HANDLERS DE COLISÃO ---
+        # Opcional (Se você já botou a Tag 3 da resposta passada, mantenha)
+        self.espaco.on_collision(1, 3, begin=self.colisao_projetil_continuo)
+        
+        # NOVO: Flecha (2) bate no Chão/Paredes (0) ou em outros obstáculos (3)
+        self.espaco.on_collision(2, 0, begin=self.colisao_flecha_cenario)
+        self.espaco.on_collision(2, 3, begin=self.colisao_flecha_cenario)
 
     def handle_events(self, event):
 
@@ -157,8 +165,20 @@ class game:
         mouse_pos = pygame.mouse.get_pos()
         atualizar_camera(self.fila, self.pontos_controle, self.modo_edicao)
 
+        tempo_atual = pygame.time.get_ticks()
+        punicao_voo = self.gerenciador.update(tempo_atual, self.meu_boneco)
+
         # GESTOS
         acao = "Parado"
+        if self.gestos is not None and not self.gestos.empty():
+            try:
+                acao = self.gestos.get_nowait()
+                # BLOQUEIA O PULO SE ESTIVER PUNIDO
+                if acao == "Pular" and punicao_voo:
+                    acao = "Parado" 
+                    print("Pulo bloqueado pelo Anti-Voo!")
+            except Exception as erro:
+                print("ERRO:", erro)
 
         if self.gestos is not None and not self.gestos.empty():
             try:
@@ -220,6 +240,7 @@ class game:
             opcoes = pymunk.pygame_util.DrawOptions(screen)
             self.espaco.debug_draw(opcoes)
         else:
+            # 1. Desenha o Boneco
             if self.sprites_boneco:
                 for nome, img in self.sprites_boneco.items():
                     forma = self.meu_boneco[nome]
@@ -227,14 +248,31 @@ class game:
                     img_rot = pygame.transform.rotate(img, -math.degrees(corpo.angle))
                     rect = img_rot.get_rect(center=corpo.position)
                     screen.blit(img_rot, rect)
+                    
+            # 2. Desenha os Objetos do Cenário (Espada, Caixa)
             if self.texturas:
-                for nome, img in self.texturas.items():
-                    forma = self.objetos[nome]
-                    corpo = forma[0].body
-                    img_esc=pygame.transform.scale(img, (forma[1][0]/10, forma[1][1]/10))
-                    img_rot = pygame.transform.rotate(img_esc, -math.degrees(corpo.angle))
-                    rect = img_rot.get_rect(center=corpo.position)
-                    screen.blit(img_rot, rect)
+                for nome, forma in self.objetos.items():
+                    if nome in self.texturas:
+                        img = self.texturas[nome]
+                        corpo = forma[0].body
+                        img_esc = pygame.transform.scale(img, (forma[1][0]//10, forma[1][1]//10))
+                        img_rot = pygame.transform.rotate(img_esc, -math.degrees(corpo.angle))
+                        rect = img_rot.get_rect(center=corpo.position)
+                        screen.blit(img_rot, rect)
+
+            # 3. NOVO: Desenha os Obstáculos Dinâmicos
+            if hasattr(self, 'gerenciador') and self.gerenciador.obstaculos_ativos:
+                for obs in self.gerenciador.obstaculos_ativos:
+                    tipo = obs["tipo"]
+                    corpo = obs["corpo"]
+                    
+                    # Checa se a imagem com o nome do tipo (ex: "flecha") existe nas texturas
+                    if tipo in self.texturas:
+                        img = self.texturas[tipo]
+                        img_esc = pygame.transform.scale(img, (forma[1][0]//10, forma[1][1]//10))
+                        img_rot = pygame.transform.rotate(img_esc, -math.degrees(corpo.angle))
+                        rect = img_rot.get_rect(center=corpo.position)
+                        screen.blit(img_rot, rect)
 
         # PONTOS CONTROLE
         for p in self.pontos_controle:
@@ -249,14 +287,10 @@ class game:
         # MENU
         desenhar_menu(screen, self.fonte, self.rect_abrir_menu, self.menu_aberto, self.LARGURA)
     def colisao_projetil_unico(self, arbiter, space, data):
-        # Descobre quem é quem na batida
         forma_boneco, forma_flecha = arbiter.shapes 
         tempo_atual = pygame.time.get_ticks()
 
-        # Checa I-frames (1000 milissegundos = 1 segundo de intangibilidade)
         if tempo_atual - forma_boneco.ultimo_dano > 1000:
-            
-            # Aplica o dano (ex: 35 de dano, quebra no 3º hit)
             forma_boneco.vida -= 35 
             forma_boneco.ultimo_dano = tempo_atual
             
@@ -324,3 +358,29 @@ class game:
         corpo.apply_impulse_at_local_point((15000, -2000)) 
         
         print("🏹 Flecha disparada!")
+
+    def colisao_projetil_continuo(self, arbiter, space, data):
+        forma_boneco, forma_obstaculo = arbiter.shapes 
+        tempo_atual = pygame.time.get_ticks()
+
+        # Checa os mesmos I-frames da flecha
+        if tempo_atual - forma_boneco.ultimo_dano > 1000:
+            forma_boneco.vida -= 35 
+            forma_boneco.ultimo_dano = tempo_atual
+            print(f"BAM! {forma_boneco.nome_membro} esmagado! Vida: {forma_boneco.vida}")
+
+            if forma_boneco.vida <= 0:
+                space.add_post_step_callback(self.quebrar_membro, forma_boneco)
+
+        # Diferença crucial: NÃO retornamos True incondicionalmente para deletar
+        # Apenas retornamos True para a física ocorrer e o obstáculo continuar existindo
+        return True
+    
+    def colisao_flecha_cenario(self, arbiter, space, data):
+        # Como a flecha bateu no chão (0) ou obstáculo (3), precisamos saber qual dos dois é a flecha
+        # Se a forma [0] for a tag 2, ela é a flecha. Se não, é a [1].
+        forma_flecha = arbiter.shapes[0] if arbiter.shapes[0].collision_type == 2 else arbiter.shapes[1]
+        
+        # Agenda a destruição imediata da flecha!
+        space.add_post_step_callback(self.destruir_projetil, forma_flecha)
+        return True
