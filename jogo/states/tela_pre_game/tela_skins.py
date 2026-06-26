@@ -1,169 +1,112 @@
 import pygame
-
-from ui.button import Button
-from jogo.systems.skins import load_skin, listar_skins
 import math
 import os
-from jogo.states.tela_pre_game.pre_game import PreGame
-
+from ui.button import Button
+from jogo.systems.skins import load_skin, listar_skins
 
 class TelaSkins:
-
-    val=0
-
     def __init__(self, width, height):
-
         self.width = width
         self.height = height
-
-        # BACKGROUND
-        self.background = pygame.image.load(
-            "assets/images/menu/lobby.png"
-        )
+        self.val = 0
+        self.skins_caminho = "assets/skins"
+        
+        self.skins = listar_skins()
+        # Salva o nome em texto em vez de só o número! É 100% à prova de bugs:
+        self.skin_selecionada_nome = self.skins[0] if self.skins else "padrao"
 
         self.background = pygame.transform.scale(
-            self.background,
+            pygame.image.load("assets/images/menu/lobby.png").convert(),
             (self.width, self.height)
         )
 
-        # OVERLAY
         self.overlay = pygame.Surface((self.width, self.height))
         self.overlay.set_alpha(60)
         self.overlay.fill((0, 0, 0))
 
-        # FONTE
-        self.font = pygame.font.SysFont(
-            "times new roman",
-            54,
-            bold=True
-        )
+        self.font = pygame.font.SysFont("times new roman", 54, bold=True)
+        self.title = self.font.render("SKINS", True, (230, 210, 160))
+        self.title_rect = self.title.get_rect(center=(self.width // 2, 60))
 
-        # TÍTULO
-        self.title = self.font.render(
-            "SKINS",
-            True,
-            (230, 210, 160)
-        )
-
-        self.title_rect = self.title.get_rect(
-            center=(self.width // 2, 60)
-        )
-
-        # BOTÃO VOLTAR
-        self.back_button = Button(
-            "←",
-            40,
-            35,
-            90,
-            70,
-            font_size=52
-        )
-
-    def draw(self, screen):
-
-        # FUNDO
-        screen.blit(self.background, (0, 0))
-
-        # OVERLAY
-        screen.blit(self.overlay, (0, 0))
-
-        # TÍTULO
-        screen.blit(self.title, self.title_rect)
-
-        # BOTÃO
-        self.back_button.draw(screen)
-
-        self.skins_caminho = "assets/skins"
+        self.back_button = Button("←", 40, 35, 90, 70, font_size=52)
 
         self.thumbs_skins = {}
-        for pasta in os.listdir(self.skins_caminho):
-            caminho_thumb = f"{self.skins_caminho}/{pasta}/cabeca.png"
+        self.botoes_skins = []
+        self.fundo_skins_rect = pygame.transform.scale(
+            pygame.image.load("assets/images/menu/beckmenu.png").convert(),
+            (500, 400)
+        )
+        self.fundo_skins_rect_coordenada = (self.width // 2 - 500, self.height // 2 - 200)
+        
+        self._carregar_thumbnails_e_botoes()
+
+        self.head_preview = None
+        self.body_preview = None
+        self._atualizar_preview()
+
+        self.shadow_surface = pygame.Surface((160, 40), pygame.SRCALPHA)
+        pygame.draw.ellipse(self.shadow_surface, (0, 0, 0, 100), (0, 0, 160, 40))
+
+    def _carregar_thumbnails_e_botoes(self):
+        lista_pastas = sorted(os.listdir(self.skins_caminho)) # sorted garante a mesma ordem sempre!
+        
+        for i, nome_skin in enumerate(lista_pastas):
+            caminho_thumb = f"{self.skins_caminho}/{nome_skin}/cabeca.png"
             if os.path.exists(caminho_thumb):
                 img = pygame.image.load(caminho_thumb).convert_alpha()
-                # Redimensiona para um tamanho de ícone (ex: 60x60)
-                self.thumbs_skins[pasta] = pygame.transform.scale(img, (60, 60))
+                self.thumbs_skins[nome_skin] = pygame.transform.scale(img, (60, 60))
 
-        fundo_skins = pygame.Rect(self.width//2 - 500, self.height//2 - 200, 500, 400)
-
-        pygame.draw.rect(screen, (230, 230, 230), fundo_skins)
-
-        for i, nome_skin in enumerate(os.listdir(self.skins_caminho)):
-            # Somamos +1 no índice para não ocupar o lugar do botão Debug
-            self.indice_ajustado = i 
-            self.coluna = self.indice_ajustado % 4
-            self.linha = self.indice_ajustado // 4
-            x = fundo_skins.x + 10 + (self.coluna * 110)
-            y = fundo_skins.y + 50 + (self.linha * 110)
-            Button(f"{i}", x, y, 100, 100).draw(screen)
-
+            coluna = i % 4
+            linha = i // 4
+            x = self.fundo_skins_rect_coordenada[0] + 10 + (coluna * 110)
+            y = self.fundo_skins_rect_coordenada[1] + 50 + (linha * 110)
             
-            if nome_skin in self.thumbs_skins:
-                screen.blit(self.thumbs_skins[nome_skin], (x + 20, y + 20))
-            for event in pygame.event.get():
-                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    self.botao=1
-                else:                    
-                    self.botao=0
-            if Button(f"{i}", x, y, 100, 100).handle_event(pygame.event.Event(pygame.MOUSEBUTTONDOWN, pos=pygame.mouse.get_pos(), button=self.botao)):
-                print(f"Skin {nome_skin} selecionada!")
-                self.val=i
-                
-            #if Button.handle_event(self, event):
-            #    carregar_skin_pasta(nome_skin)
+            botao = Button(f"{i}", x, y, 100, 100, font_size=16)
+            self.botoes_skins.append({"botao": botao, "nome": nome_skin, "indice": i})
 
-
-               
-        # PREVIEW
-        self.preview_rect = pygame.Rect(self.width // 2 + 50, 170, 500, 320)
-
-        self.skins = listar_skins()
-
-        self.current_skin = self.val
-
+    def _atualizar_preview(self):
         if len(self.skins) > 0:
-            self.loaded_skin = load_skin(
-                self.skins[self.current_skin]
-            )
-        else:
-            self.loaded_skin = None
+            loaded_skin = load_skin(self.skin_selecionada_nome)
+            self.head_preview = pygame.transform.scale(loaded_skin["cabeca"], (90, 90))
+            self.body_preview = pygame.transform.scale(loaded_skin["torco"], (120, 140))
 
-        # texto preview
-        self.preview_text = self.font.render("PERSONAGEM", True, (230, 210, 160))
-        self.preview_rect_text = self.preview_text.get_rect(
-            center = (self.preview_rect.centerx, self.preview_rect.y + 40))
-         # preview personagem
-        pygame.draw.rect(screen, (55, 55, 65), self.preview_rect, border_radius = 22)
-        preview_glow = pygame.Surface((500, 320), pygame.SRCALPHA)
+    # --- A PONTE COM O MAESTRO ---
+    def handle_events(self, event):
+        if self.back_button.handle_event(event):
+            return True # Avisa o GameManager: "Pode voltar pro lobby"
 
-        pygame.draw.rect(preview_glow, (255, 220, 120, 25), (0, 0, 500, 320), border_radius = 22)
-        
-        screen.blit(preview_glow, self.preview_rect.topleft)
+        for item in self.botoes_skins:
+            if item["botao"].handle_event(event):
+                self.val = item["indice"]
+                self.skin_selecionada_nome = item["nome"]
+                print(f"Skin selecionada: {self.skin_selecionada_nome}")
+                self._atualizar_preview()
 
-        pygame.draw.rect(screen, (212, 175, 55), self.preview_rect, width = 3, border_radius = 22)
+        return False
 
-        # texto preview
-        screen.blit(self.preview_text, self.preview_rect_text)
-        # personagem
-        if self.loaded_skin:
+    def draw(self, screen):
+        screen.blit(self.background, (0, 0))
+        screen.blit(self.overlay, (0, 0))
+        screen.blit(self.title, self.title_rect)
+        self.back_button.draw(screen)
 
-            # animação idle
+        screen.blit(self.fundo_skins_rect, self.fundo_skins_rect_coordenada)
+
+        for item in self.botoes_skins:
+            botao = item["botao"]
+            botao.draw(screen)
+            if item["nome"] in self.thumbs_skins:
+                screen.blit(self.thumbs_skins[item["nome"]], (botao.rect.x + 20, botao.rect.y + 20))
+
+        preview_rect = pygame.Rect(self.width // 2 + 50, self.height // 2 - 160, 500, 320)
+        pygame.draw.rect(screen, (55, 55, 65), preview_rect, border_radius=22)
+        pygame.draw.rect(screen, (212, 175, 55), preview_rect, width=3, border_radius=22)
+
+        preview_text = self.font.render("PERSONAGEM", True, (230, 210, 160))
+        screen.blit(preview_text, preview_text.get_rect(center=(preview_rect.centerx, preview_rect.y + 40)))
+
+        if self.head_preview and self.body_preview:
             offset = math.sin(pygame.time.get_ticks() * 0.005) * 5
-
-            # cabeça
-            head = pygame.transform.scale(self.loaded_skin["cabeca"], (90, 90))
-
-            # corpo
-            body = pygame.transform.scale(self.loaded_skin["torco"], (120, 140))
-
-            # sombra
-            shadow_surface = pygame.Surface((160, 40), pygame.SRCALPHA)
-
-            pygame.draw.ellipse(shadow_surface, (0, 0, 0, 100), (0, 0, 160, 40))
-
-            screen.blit(shadow_surface, (self.preview_rect.centerx - 80, self.preview_rect.bottom - 70))
-
-            # desenhar tronco
-            screen.blit(body, (self.preview_rect.centerx - 60, self.preview_rect.centery - 20 + offset))
-
-            # desenhar cabeça
-            screen.blit(head, (self.preview_rect.centerx - 45, self.preview_rect.centery - 100 + offset))
+            screen.blit(self.shadow_surface, (preview_rect.centerx - 80, preview_rect.bottom - 70))
+            screen.blit(self.body_preview, (preview_rect.centerx - 60, preview_rect.centery - 20 + offset))
+            screen.blit(self.head_preview, (preview_rect.centerx - 45, preview_rect.centery - 100 + offset))
