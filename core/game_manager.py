@@ -119,7 +119,7 @@ class GameManager:
                     try:
                         self.iniciar_camera()
 
-                        skin_escolhida = self.pre_game.skins[self.tela_skins.val]
+                        skin_escolhida = self.tela_skins.skin_selecionada_nome # <-- Novo (pega o nome exato)
                         self.gameplay = game(self.WIDTH, self.HEIGHT, self.fila, self.config, self.gestos, skin_escolhida)
                         self.current_state = "gameplay"
                         
@@ -129,8 +129,9 @@ class GameManager:
             # SKINS
             elif self.current_state == "skins":
 
-                if self.tela_skins.back_button.handle_event(event):
-                    self.current_state = "pre_game"
+                # Agora repassamos o clique para a tela inteira processar:
+                if self.tela_skins.handle_events(event):
+                    self.current_state = "pre_game" 
 
             # CONFIG
             elif self.current_state == "config":
