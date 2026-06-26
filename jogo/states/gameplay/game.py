@@ -86,10 +86,22 @@ class game:
 
         # Teclado
         self.velocidade_teclado = 10
+        # --- ÁUDIO (Carregue ANTES do gerenciador) ---
+        pygame.mixer.init()
+        self.sons = {
+            "colisao": pygame.mixer.Sound("assets/sons/colisao.mp3"),
+            "quebra": pygame.mixer.Sound("assets/sons/quebra.mp3"),
+            "disparo_flecha": pygame.mixer.Sound("assets/sons/disparo_flecha.mp3"),
+            "disparo_canhao": pygame.mixer.Sound("assets/sons/disparo_canhao.mp3"),
+            "disparo_onda": pygame.mixer.Sound("assets/sons/disparo_onda.mp3"),
+            "disparo_espinho": pygame.mixer.Sound("assets/sons/disparo_espinho.mp3")
+        }
+        for som in self.sons.values():
+            som.set_volume(0.5)
 
         # --- GERENCIADOR DE FASES ---
         # Exemplo: O mapa atual está chumbado como "teatro_praia" para testar todos os obstáculos
-        self.gerenciador = GerenciadorFases(self.espaco, self.LARGURA, self.ALTURA, "teatro_praia")
+        self.gerenciador = GerenciadorFases(self.espaco, self.LARGURA, self.ALTURA, "teatro_praia", self.sons)
 
         # --- HANDLERS DE COLISÃO ---
         # Opcional (Se você já botou a Tag 3 da resposta passada, mantenha)
@@ -98,6 +110,8 @@ class game:
         # NOVO: Flecha (2) bate no Chão/Paredes (0) ou em outros obstáculos (3)
         self.espaco.on_collision(2, 0, begin=self.colisao_flecha_cenario)
         self.espaco.on_collision(2, 3, begin=self.colisao_flecha_cenario)
+
+        
 
     def handle_events(self, event):
 
@@ -265,11 +279,18 @@ class game:
                 for obs in self.gerenciador.obstaculos_ativos:
                     tipo = obs["tipo"]
                     corpo = obs["corpo"]
-                    
+                    forma = obs["forma"]
                     # Checa se a imagem com o nome do tipo (ex: "flecha") existe nas texturas
                     if tipo in self.texturas:
                         img = self.texturas[tipo]
-                        img_esc = pygame.transform.scale(img, (forma[1][0]//10, forma[1][1]//10))
+                        if tipo == "onda":
+                            img_esc = pygame.transform.scale(img, (160,100))
+                        elif tipo == "espinho":
+                            img_esc = pygame.transform.scale(img, (40,40))
+                        elif tipo == "canhao":
+                            img_esc = pygame.transform.scale(img, (60,60))
+                        else:  # Para flechas e outros
+                            img_esc = pygame.transform.scale(img, (60,10))
                         img_rot = pygame.transform.rotate(img_esc, -math.degrees(corpo.angle))
                         rect = img_rot.get_rect(center=corpo.position)
                         screen.blit(img_rot, rect)
@@ -294,18 +315,18 @@ class game:
             forma_boneco.vida -= 35 
             forma_boneco.ultimo_dano = tempo_atual
             
+            # TOCA O SOM DE IMPACTO DA FLECHA AQUI
+            self.sons["colisao"].play()
+            
             print(f"DANO! {forma_boneco.nome_membro} recebeu uma flechada! Vida: {forma_boneco.vida}")
 
-            # Se a vida zerar, agenda a quebra do membro
             if forma_boneco.vida <= 0:
+                # TOCA O SOM DO MEMBRO QUEBRANDO AQUI
+                self.sons["quebra"].play()
                 space.add_post_step_callback(self.quebrar_membro, forma_boneco)
 
-        # A flecha é "uso único", então sempre agendamos a destruição dela
         space.add_post_step_callback(self.destruir_projetil, forma_flecha)
-        
-        # Retorna True para que a flecha empurre o boneco fisicamente. 
-        # (Se retornar False, a flecha atravessa como um fantasma dando dano)
-        return True 
+        return True
 
     def destruir_projetil(self, space, forma_projetil, *args):
         # Remove a flecha do mundo físico para ela sumir da tela
@@ -359,6 +380,7 @@ class game:
         
         print("🏹 Flecha disparada!")
 
+
     def colisao_projetil_continuo(self, arbiter, space, data):
         forma_boneco, forma_obstaculo = arbiter.shapes 
         tempo_atual = pygame.time.get_ticks()
@@ -372,8 +394,14 @@ class game:
             if forma_boneco.vida <= 0:
                 space.add_post_step_callback(self.quebrar_membro, forma_boneco)
 
-        # Diferença crucial: NÃO retornamos True incondicionalmente para deletar
-        # Apenas retornamos True para a física ocorrer e o obstáculo continuar existindo
+        # Toca som de impacto
+        self.sons["colisao"].play()
+
+        if forma_boneco.vida <= 0:
+            # Toca som de quebra
+            self.sons["quebra"].play()
+            space.add_post_step_callback(self.quebrar_membro, forma_boneco)
+            
         return True
     
     def colisao_flecha_cenario(self, arbiter, space, data):
