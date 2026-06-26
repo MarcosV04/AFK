@@ -47,13 +47,23 @@ class GameManager:
         if self.camera_process is None:
             self.camera_process = Process(target=run_hand_tracking, args=(self.fila, self.config, self.gestos))
             self.camera_process.start()
+    
+    def parar_camera(self):
+
+        if self.camera_process is not None:
+
+            self.config.put("Fechar")
+
+            self.camera_process.join(timeout=3)
+
+            if self.camera_process.is_alive():
+                self.camera_process.terminate()
+                self.camera_process.join()
+            self.camera_process = None
+        return
 
     def run(self):
         pygame.mixer.init()
-
-        # Carregar e tocar música (loop infinito com -1)
-        pygame.mixer.music.load('assets/sons/musica/teatro.mp3')
-        pygame.mixer.music.set_volume(0.5) # Volume entre 0.0 e 1.0
 
         # Carregar e tocar música (loop infinito com -1)
         pygame.mixer.music.load('assets/sons/musica/teatro.mp3')
@@ -121,7 +131,9 @@ class GameManager:
                 if self.pre_game.start_button.handle_event(event):
                     
                     try:
-                        self.iniciar_camera()
+
+                        if self.tela_config.modo_jogo == "AFK":
+                            self.iniciar_camera()
 
                         skin_escolhida = self.pre_game.skins[self.tela_skins.val]
                         self.gameplay = game(self.WIDTH, self.HEIGHT, self.fila, self.config, self.gestos, skin_escolhida)
@@ -172,8 +184,22 @@ class GameManager:
         # GAMEPLAY
         if self.current_state == "gameplay":
             self.gameplay.update()
+            
+            if self.gameplay.sair_partida:
+                self.parar_camera()
+                
+                pygame.display.quit()
+                pygame.display.init()
+                
+                self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
+                pygame.display.set_caption("AFK")
+                
+                self.current_state = "pre_game"
+                self.gameplay = None    
 
     def draw(self):
+        
+        #print(self.current_state)
 
         # MENU
         if self.current_state == "menu":

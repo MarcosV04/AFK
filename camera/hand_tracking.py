@@ -171,23 +171,21 @@ def run_hand_tracking(fila, config, gestos):
     finally:
 
         print("Finalizando processo da câmera...")
-
+    
         try:
             hands.close()
         except:
             pass
-
+        
         try:
             if cap.isOpened():
                 cap.release()
         except:
             pass
-
-        try:
-            cv2.destroyAllWindows()
-        except:
-            pass
-
+        
+        # COMENTA ESSA LINHA
+        # cv2.destroyAllWindows()
+    
         print("Câmera finalizada!")
     
     if __name__ == "__main__":
